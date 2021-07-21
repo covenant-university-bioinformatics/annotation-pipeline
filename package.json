@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@nestjs/mongoose": "^8.0.0",
+    "mongoose": "^5.13.3",
+    "mongoose-update-if-current": "^1.4.0",
+    "n-readlines": "^1.0.1"
+  }
+}
