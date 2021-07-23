@@ -13,7 +13,6 @@ global:
 ## ref: https://hub.docker.com/r/apache/nifi/
 ##
 
-
 image: redis
 imageConfig:
   repository:
@@ -46,7 +45,7 @@ services:
     specs:
       - port: 6379
         targetPort: 6379
-        name: postgres-svc
+        name: redis-svc
   - name: external
     type: NodePort
     annotations: {}
@@ -89,6 +88,12 @@ volumes:
     class: hostpath
     accessModes:
       - ReadWriteOnce
+  internal:
+    enabled: false
+    hostpath:
+      - name:
+        path:
+        mountPath: /local/datasets
 
 #  configMaps:
 #    - name: test
@@ -103,7 +108,6 @@ fileConfigMap: false
 ##
 ingress:
   enabled: false
-
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##

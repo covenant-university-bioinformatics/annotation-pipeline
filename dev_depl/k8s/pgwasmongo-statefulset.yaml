@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pgwas-mongo
+  namespace: dbs
+spec:
+  selector:
+    matchLabels:
+      role: mongo-db-pgwas
+      environment: pgwas-mongo
+  serviceName: "pgwas-mongo-service"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        role: mongo-db-pgwas
+        environment: pgwas-mongo
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: mongo
+          image: mongo
+          command:
+            - mongod
+            - "--bind_ip"
+            - "0.0.0.0"
+            - "--replSet"
+            - "rs0"
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: pgwas-mongo-persistent-storage
+              mountPath: /data/db
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo-db-pgwas,environment=pgwas-mongo"
+  volumeClaimTemplates:
+    - metadata:
+        name: pgwas-mongo-persistent-storage
+      spec:
+        storageClassName: hostpath
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

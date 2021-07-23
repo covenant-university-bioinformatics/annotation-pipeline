@@ -8,21 +8,21 @@ export enum JobStatus {
   ABORTED = 'aborted',
   NOTSTARTED = 'not-started',
 }
-export type JobsDocument = Jobs & Document;
+export type AnnotationJobDocument = AnnotationJob & Document;
 
 @Schema({
   toJSON: {
-    // virtuals: true,
+    virtuals: true,
     transform(doc, ret) {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
     },
   },
-  // toObject: { virtuals: true },
+  toObject: { virtuals: true },
   timestamps: true,
 })
-export class Jobs {
+export class AnnotationJob {
   @Prop({
     type: String,
     required: [true, 'Please add a Job UID'],
@@ -47,6 +47,12 @@ export class Jobs {
 
   @Prop({
     type: String,
+    trim: true,
+  })
+  outputFile: string;
+
+  @Prop({
+    type: String,
     enum: [
       JobStatus.COMPLETED,
       JobStatus.NOTSTARTED,
@@ -61,11 +67,11 @@ export class Jobs {
   version: number;
 }
 
-export const JobsSchema = SchemaFactory.createForClass(Jobs);
+export const AnnotationJobSchema = SchemaFactory.createForClass(AnnotationJob);
 
 //Cascade delete main job parameters when job is deleted
-JobsSchema.pre('remove', async function (next) {
-  console.log('Test parameters being removed!');
+AnnotationJobSchema.pre('remove', async function (next) {
+  console.log('Job parameters being removed!');
   await this.model('Test').deleteMany({
     job: this.id,
   });
@@ -73,10 +79,10 @@ JobsSchema.pre('remove', async function (next) {
 });
 
 //reverse populate jobs with main job parameters
-JobsSchema.virtual('test', {
-  ref: 'Test',
+AnnotationJobSchema.virtual('annot', {
+  ref: 'Annotation',
   localField: '_id',
   foreignField: 'job',
   justOne: true,
 });
-JobsSchema.set('versionKey', 'version');
+AnnotationJobSchema.set('versionKey', 'version');

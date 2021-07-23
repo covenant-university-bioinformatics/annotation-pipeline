@@ -109,6 +109,12 @@ spec:
               name: {{ .Values.volumes.pvc.existing_claim }}-volume
             {{- end }}
             {{- end }}
+            {{- if .Values.volumes.internal.enabled }}
+            {{- range $hpath := .Values.volumes.internal.hostpath }}
+            - mountPath: {{ $hpath.mountPath }}
+              name: {{ $hpath.name }}-volume
+            {{- end }}
+            {{- end }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -221,6 +227,13 @@ spec:
         - name: {{ .Values.volumes.pvc.existing_claim }}-volume
           persistentVolumeClaim:
             claimName: {{ .Values.volumes.pvc.existing_claim }}
+       {{- end }}
+       {{- end }}
+       {{- if .Values.volumes.internal.enabled}}
+       {{- range $hpath := .Values.volumes.internal.hostpath }}
+        - name: {{ $hpath.name }}-volume
+          hostPath:
+            path: {{ $hpath.path }}
        {{- end }}
        {{- end }}
        {{- if .Values.fileConfigMap }}

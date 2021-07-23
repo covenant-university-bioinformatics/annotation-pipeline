@@ -1,12 +1,9 @@
 import {
-  IsNumber,
-  IsInt,
   IsNumberString,
   IsString,
-  Max,
   MaxLength,
-  Min,
   MinLength,
+  IsBooleanString,
 } from 'class-validator';
 
 export class CreateJobDto {
@@ -15,39 +12,51 @@ export class CreateJobDto {
   @MaxLength(20)
   job_name: string;
 
-  // @IsString()
-  // jobUID: string;
+  @IsNumberString()
+  marker_name: string;
 
   @IsNumberString()
-  marker_name: number;
+  chromosome: string;
 
   @IsNumberString()
-  chromosome: number;
+  position: string;
 
   @IsNumberString()
-  position: number;
+  effect_allele: string;
 
   @IsNumberString()
-  pvalue: number;
+  alternate_allele: string;
 
-  @IsNumberString()
-  effect_allele: number;
+  @IsBooleanString()
+  cytoband: string;
 
-  @IsNumberString()
-  alternate_allele: number;
+  @IsBooleanString()
+  all_1000g: string;
 
-  @IsNumberString()
-  beta: number;
+  @IsBooleanString()
+  afr_1000g: string;
 
-  @IsNumberString()
-  or: number;
+  @IsBooleanString()
+  amr_1000g: string;
 
-  @IsNumberString()
-  se: number;
+  @IsBooleanString()
+  eas_1000g: string;
 
-  @IsString()
-  ncbi_build: string;
+  @IsBooleanString()
+  eur_1000g: string;
 
-  @IsString()
-  filename: string;
+  @IsBooleanString()
+  sas_1000g: string;
+
+  @IsBooleanString()
+  exac: string;
+
+  @IsBooleanString()
+  dbnsfp: string;
+
+  @IsBooleanString()
+  clinvar: string;
+
+  @IsBooleanString()
+  intervar: string;
 }
