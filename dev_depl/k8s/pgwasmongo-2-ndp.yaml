@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgwas-mongo-2-db-ext
+  namespace: dbs
+spec:
+  type: NodePort
+  selector:
+    mongodb: pgwas-mongo-2
+  ports:
+    - name: mongoexternal-svc
+      port: 1234
+      protocol: TCP
+      targetPort: 27017
+      nodePort: 32602

@@ -1,44 +1,59 @@
 import {
-  Inject,
+  Global,
   MiddlewareConsumer,
   Module,
   RequestMethod,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { JobsController } from './jobs.controller';
-// import { InjectModel, MongooseModule } from '@nestjs/mongoose';
+import { InjectModel, MongooseModule } from '@nestjs/mongoose';
+import {
+  AnnotationJob,
+  AnnotationJobDocument,
+  AnnotationJobSchema,
+} from './models/annotation.jobs.models';
+import { Annotation, AnnotationSchema } from './models/annotation.model';
+import { Model } from 'mongoose';
+import advancedResults from 'src/middlewares/filterResponseResults.middleware';
+import { QueueModule } from '../jobqueue/queue.module';
 // import { AuthModule } from '../auth/auth.module';
-// import { Test, TestSchema } from './models/test.model';
-// import { Jobs, JobsDocument, JobsSchema } from './models/jobs.models';
 // import { NatsModule } from '../nats/nats.module';
-// import advancedResults from '../middlewares/filterResponseResults.middleware';
-// import { Model } from 'mongoose';
 
+@Global()
 @Module({
   imports: [
-    // MongooseModule.forFeature([
-    //   {
-    //     name: Jobs.name,
-    //     schema: JobsSchema,
-    //   },
-    //   {
-    //     name: Test.name,
-    //     schema: TestSchema,
-    //   },
-    // ]),
+    MongooseModule.forFeature([
+      {
+        name: AnnotationJob.name,
+        schema: AnnotationJobSchema,
+      },
+      {
+        name: Annotation.name,
+        schema: AnnotationSchema,
+      },
+    ]),
+    QueueModule,
     // AuthModule,
     // NatsModule,
-    // NestjsFormDataModule.config({ storage: FileSystemStoredFile }),
   ],
   controllers: [JobsController],
   providers: [JobsService],
+  exports: [
+    MongooseModule.forFeature([
+      {
+        name: AnnotationJob.name,
+        schema: AnnotationJobSchema,
+      },
+    ]),
+  ],
 })
 export class JobsModule {
-  // @InjectModel(Jobs.name) private jobsModel: Model<JobsDocument>;
-  //
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer
-  //     .apply(advancedResults(this.jobsModel, 'test'))
-  //     .forRoutes({ path: 'api/jobs', method: RequestMethod.GET });
-  // }
+  @InjectModel(AnnotationJob.name)
+  private annotJobsModel: Model<AnnotationJobDocument>;
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(advancedResults(this.annotJobsModel, 'annot'))
+      .forRoutes({ path: 'api/annot/jobs', method: RequestMethod.GET });
+  }
 }

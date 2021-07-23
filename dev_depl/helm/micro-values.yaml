@@ -49,43 +49,48 @@ services:
 #https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#serviceport-v1-core
 
 environment:
-#  - name: NATS_URL
-#    valueFrom:
-#      configMapKeyRef:
-#        name: nats-configmap
-#        key: nats_url
-#  - name: NATS_CLUSTER_ID
-#    value: pgwas-internal
-#  - name: NATS_CLIENT_ID
-#    valueFrom:
-#      fieldRef: metadata.name
-#  - name: JWT_KEY
-#    valueFrom:
-#      secretKeyRef:
-#        name: jwt-secret
-#        key: JWT_KEY
-#  - name: MONGO_HOST
-#    valueFrom:
-#      configMapKeyRef:
-#        name: jobsmongo-configmap
-#        key: database_url
-#  - name: MONGODB_USER
-#    valueFrom:
-#      secretKeyRef:
-#        name: mongo-secret
-#        key: mongo-root-username
-#  - name: MONGODB_PASSWORD
-#    valueFrom:
-#      secretKeyRef:
-#        name: mongo-secret
-#        key: mongo-root-password
-#  - name: MONGODB_NAME
-#    valueFrom:
-#      secretKeyRef:
-#        name: mongo-secret
-#        key: mongo-jobs-db
-#  - name: MONGODB_PODNAME
-#    value: jobs-mongo
+  #  - name: NATS_URL
+  #    valueFrom:
+  #      configMapKeyRef:
+  #        name: nats-configmap
+  #        key: nats_url
+  #  - name: NATS_CLUSTER_ID
+  #    value: pgwas-internal
+  #  - name: NATS_CLIENT_ID
+  #    valueFrom:
+  #      fieldRef: metadata.name
+  #  - name: JWT_KEY
+  #    valueFrom:
+  #      secretKeyRef:
+  #        name: jwt-secret
+  #        key: JWT_KEY
+  - name: REDIS_BULL_HOST
+    valueFrom:
+      configMapKeyRef:
+        name: redis-bullmq-configmap
+        key: database_url
+  - name: MONGO_HOST
+    valueFrom:
+      configMapKeyRef:
+        name: pgwasmongo-configmap
+        key: database_url
+  - name: MONGODB_USER
+    valueFrom:
+      secretKeyRef:
+        name: mongo-secret
+        key: mongo-root-username
+  - name: MONGODB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: mongo-secret
+        key: mongo-root-password
+  - name: MONGODB_NAME
+    valueFrom:
+      secretKeyRef:
+        name: mongo-secret
+        key: mongo-annot-db
+  - name: MONGODB_PODNAME
+    value: pgwas-mongo
   #  - name: REDIS_HOST
   #    valueFrom:
   #      configMapKeyRef:
@@ -105,13 +110,19 @@ volumes:
   enabled: true
   pvc:
     enabled: true
-    existing_claim: analysis-storage
     name:
+    existing_claim: analysis-storage
     mountPath: /pv/analysis
     size: 20Gi
-    class:
+    class: hostpath
     accessModes:
       - ReadWriteOnce
+  internal:
+    enabled: true
+    hostpath:
+      - name: humandb
+        path: /run/desktop/mnt/host/c/Users/daref/Downloads/annovar/
+        mountPath: /local/datasets
 
 #  configMaps:
 #    - name: sqlfile

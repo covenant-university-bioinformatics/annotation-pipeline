@@ -4,13 +4,20 @@ deploy:
   helm:
     releases:
       - name: ingress
-        chartPath: .\deployment\helm\
+        chartPath: .\dev_depl\helm\
         valuesFiles:
-          - .\deployment\helm\ingress-values.yaml
+          - .\dev_depl\helm\ingress-values.yaml
+      - name: redis-bullmq
+        chartPath: .\dev_depl\helm\
+        valuesFiles:
+          - .\dev_depl\helm\redis-values.yaml
+        setValues:
+          volumes.pvc.name: bullmq
+          volumes.pvc.existing_claim:
       - name: annot-service
-        chartPath: .\deployment\helm\
+        chartPath: .\dev_depl\helm\
         valuesFiles:
-          - .\deployment\helm\micro-values.yaml
+          - .\dev_depl\helm\micro-values.yaml
         artifactOverrides:
           image: cubrenig/pgwasannot-service
 

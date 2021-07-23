@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgwasmongo-configmap
+  namespace: apps
+data:
+  database_url: pgwas-mongo-service.dbs

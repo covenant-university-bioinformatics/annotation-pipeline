@@ -31,7 +31,7 @@ import {
 } from '../utils/utilityfunctions';
 // import { GetUser } from '../decorators/get-user.decorator';
 // import { JobStatus } from './models/jobs.models';
-import validateFile from '../utils/validateFile';
+import validateFile, { writeAnnotationFile } from '../utils/validateFile';
 
 const storageOpts = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -131,16 +131,12 @@ export class JobsController {
       'marker_name',
       'chromosome',
       'position',
-      'pvalue',
       'effect_allele',
       'alternate_allele',
-      'beta',
-      'or',
-      'se',
     ];
 
     const columns = numberColumns.map((column) => {
-      return createJobDto[column];
+      return parseInt(createJobDto[column], 10);
     });
 
     const wrongColumn = columns.some((value) => value < 1 || value > 10);
@@ -155,12 +151,8 @@ export class JobsController {
       throw new BadRequestException('Column numbers must not have duplicates');
     }
 
-    console.log(createJobDto);
-
     //validate that file is correct
     console.log(file);
-
-    // const result = validateFile(file.path);
 
     //create jobUID
     const jobUID = uuidv4();
@@ -174,44 +166,27 @@ export class JobsController {
       throw new InternalServerErrorException();
     }
 
-    //write the exact columns needed by the analysis
-
-    // move uploaded file to that folder
-    fsmove.move(
-      file.path,
-      `/pv/analysis/${jobUID}/input/${file.filename}`,
-      function (err) {
-        if (err) {
-          console.error(err);
-          deleteFileorFolder(file.path).then(() => {
-            console.log('deleted');
-          });
-          throw new InternalServerErrorException();
-        }
-      },
-    );
-
     const filename = `/pv/analysis/${jobUID}/input/${file.filename}`;
 
-    // const imputation_file = `/pv/analysis/${jobUID}/input/imputation.txt`;
-    // writeImputationFile(
-    //   filename,
-    //   imputation_file,
-    //   result.delimiter,
-    //   result.objectColumns,
-    // );
+    //write the exact columns needed by the analysis
+    writeAnnotationFile(file.path, filename, {
+      marker_name: parseInt(createJobDto.marker_name, 10) - 1,
+      chr: parseInt(createJobDto.chromosome, 10) - 1,
+      effect_allele: parseInt(createJobDto.effect_allele, 10) - 1,
+      alternate_allele: parseInt(createJobDto.alternate_allele, 10) - 1,
+      pos: parseInt(createJobDto.position, 10) - 1,
+    });
+
+    deleteFileorFolder(file.path).then(() => {
+      console.log('deleted');
+    });
+
+    console.log(createJobDto);
+    console.log(jobUID);
+    console.log(filename);
 
     //call service
-    //this.jobsService.create(createJobDto);
-
-    // return {
-    //   jobUID,
-    //   filename,
-    // };
-
-    return {
-      success: true,
-    };
+    return await this.jobsService.create(createJobDto, jobUID, filename);
   }
 
   // @Get()

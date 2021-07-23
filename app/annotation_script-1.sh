@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 #set -e
 # keep track of the last executed command
@@ -63,32 +63,27 @@ then
 fi
 if [[ $EXAC == true ]]
 then
-  DATABASES="${DATABASES},EXAC.sites.2015_08"
+  DATABASES="${DATABASES},exac03"
   OPERATION="${OPERATION},f"
 fi
 if [[ $DBNSFP == true ]]
 then
-  DATABASES="${DATABASES},DBNSFP.sites.2015_08"
-  OPERATION="${OPERATION},f"
-fi
-if [[ $DBNSFP == true ]]
-then
-  DATABASES="${DATABASES},DBNSFP.sites.2015_08"
+  DATABASES="${DATABASES},dbnsfp30a"
   OPERATION="${OPERATION},f"
 fi
 if [[ $CLINVAR == true ]]
 then
-  DATABASES="${DATABASES},CLINVAR.sites.2015_08"
+  DATABASES="${DATABASES},clinvar_20170130"
   OPERATION="${OPERATION},f"
 fi
 if [[ $INTERVAR == true ]]
 then
-  DATABASES="${DATABASES},INTERVAR.sites.2015_08"
+  DATABASES="${DATABASES},intervar_20170202"
   OPERATION="${OPERATION},f"
 fi
 
-#echo $DATABASES
-#echo $OPERATION
+echo $DATABASES
+echo $OPERATION
 
 perl "${bin_dir}/table_annovar.pl" "${inputFile}" "${bin_dir}/humandb/" -buildver hg19 \
     -out "${outputDir}/annotation_output" -remove -protocol ${DATABASES} \

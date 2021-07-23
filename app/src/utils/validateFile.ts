@@ -6,9 +6,9 @@ import { BadRequestException } from '@nestjs/common';
 type Column = {
   chr: number;
   pos: number;
-  snp: number;
-  ref: number;
-  alt: number;
+  marker_name: number;
+  effect_allele: number;
+  alternate_allele: number;
   odds_ratio: number;
   beta: number;
   se: number;
@@ -20,7 +20,7 @@ type Column = {
 const objectColumns: Partial<Column> = {};
 let delimiter: string | false = '';
 
-const validateFile = (filename: string) => {
+const getWantedLines = (filename: string) => {
   const liner = new lineByLine(filename);
 
   const wantedLines: string[] = [];
@@ -36,7 +36,11 @@ const validateFile = (filename: string) => {
     lineCounter++;
   }
 
-  return doWork(wantedLines);
+  return wantedLines;
+};
+
+const validateFile = (filename: string) => {
+  return doWork(getWantedLines(filename));
 };
 
 function doWork(wantedLines: string[]) {
@@ -57,19 +61,19 @@ function doWork(wantedLines: string[]) {
 
     objectColumns.chr = detectColumn(columns, ['chromosome', 'chr', 'chrom']);
     objectColumns.pos = detectColumn(columns, ['pos', 'bp', 'pos']);
-    objectColumns.snp = detectColumn(columns, [
+    objectColumns.marker_name = detectColumn(columns, [
       'snp',
       'snpid',
       'markername',
       'rsid',
     ]);
-    objectColumns.ref = detectColumn(columns, [
+    objectColumns.effect_allele = detectColumn(columns, [
       'a1',
       'effect_allele',
       'allele1',
       'ref',
     ]);
-    objectColumns.alt = detectColumn(columns, [
+    objectColumns.alternate_allele = detectColumn(columns, [
       'a2',
       'non_effect_allele',
       'allele2',
@@ -106,7 +110,9 @@ function doWork(wantedLines: string[]) {
   return { objectColumns, delimiter };
 }
 
-function detectDelimiter(firstLine: string): string | false {
+function detectDelimiter(filename: string): string | false {
+  const firstLine = getWantedLines(filename)[0];
+
   let spaceLines = firstLine.split(' ');
   let tabLines = firstLine.split('\t');
   let doubleSpaceLines = firstLine.split('  ');
@@ -142,16 +148,16 @@ function detectMissingColumns(objectColumns: Partial<Column>) {
   if (objectColumns.chr === -1) {
     missingColumns.push('Missing Column: Chromosome');
   }
-  if (objectColumns.snp === -1) {
+  if (objectColumns.marker_name === -1) {
     missingColumns.push('Missing Column: MarkerName');
   }
   if (objectColumns.pos === -1) {
     missingColumns.push('Missing Column: Position');
   }
-  if (objectColumns.ref === -1) {
+  if (objectColumns.effect_allele === -1) {
     missingColumns.push('Missing Column: Reference allele');
   }
-  if (objectColumns.alt === -1) {
+  if (objectColumns.alternate_allele === -1) {
     missingColumns.push('Missing Column: Alternate allele');
   }
   if (objectColumns.zscore === -1) {
@@ -176,16 +182,28 @@ function detectIncorrectColumnContent(
   // if (!isNaN(parseInt(line[objectColumns.chr])) && objectColumns.chr !== -1) {
   //   columnErrors.push('Chromosome column should be a string');
   // }
-  if (!isNaN(parseInt(line[objectColumns.snp])) && objectColumns.snp !== -1) {
+  if (
+    !isNaN(parseInt(line[objectColumns.marker_name])) &&
+    objectColumns.marker_name !== -1
+  ) {
     columnErrors.push('SNP column should be a string');
   }
-  if (!isNaN(parseInt(line[objectColumns.ref])) && objectColumns.ref !== -1) {
+  if (
+    !isNaN(parseInt(line[objectColumns.effect_allele])) &&
+    objectColumns.effect_allele !== -1
+  ) {
     columnErrors.push('Ref allele column should be a string');
   }
-  if (!isNaN(parseInt(line[objectColumns.alt])) && objectColumns.alt !== -1) {
+  if (
+    !isNaN(parseInt(line[objectColumns.alternate_allele])) &&
+    objectColumns.alternate_allele !== -1
+  ) {
     columnErrors.push('Alt allele column should be a string');
   }
-  if (isNaN(parseFloat(line[objectColumns.p])) && objectColumns.alt !== -1) {
+  if (
+    isNaN(parseFloat(line[objectColumns.p])) &&
+    objectColumns.alternate_allele !== -1
+  ) {
     columnErrors.push('p-value should be floating point number');
   }
   if (
@@ -252,27 +270,74 @@ export function writeImputationFile(
     } else {
       if (objectColumns.zscore !== -1) {
         stream.write(
-          `${lines_strings[objectColumns.snp]}${delimiter}${
-            lines_strings[objectColumns.ref]
-          }${delimiter}${lines_strings[objectColumns.alt]}${delimiter}${
-            lines_strings[objectColumns.pos]
-          }${delimiter}${lines_strings[objectColumns.chr]}${delimiter}${
-            lines_strings[objectColumns.zscore]
-          }\n`,
+          `${lines_strings[objectColumns.marker_name]}${delimiter}${
+            lines_strings[objectColumns.effect_allele]
+          }${delimiter}${
+            lines_strings[objectColumns.alternate_allele]
+          }${delimiter}${lines_strings[objectColumns.pos]}${delimiter}${
+            lines_strings[objectColumns.chr]
+          }${delimiter}${lines_strings[objectColumns.zscore]}\n`,
         );
       } else {
         stream.write(
-          `${lines_strings[objectColumns.snp]}${delimiter}${
-            lines_strings[objectColumns.ref]
-          }${delimiter}${lines_strings[objectColumns.alt]}${delimiter}${
-            lines_strings[objectColumns.pos]
-          }${delimiter}${lines_strings[objectColumns.chr]}${delimiter}${
-            lines_strings[objectColumns.p]
-          }${delimiter}${lines_strings[objectColumns.beta]}${delimiter}${
-            lines_strings[objectColumns.se]
-          }\n`,
+          `${lines_strings[objectColumns.marker_name]}${delimiter}${
+            lines_strings[objectColumns.effect_allele]
+          }${delimiter}${
+            lines_strings[objectColumns.alternate_allele]
+          }${delimiter}${lines_strings[objectColumns.pos]}${delimiter}${
+            lines_strings[objectColumns.chr]
+          }${delimiter}${lines_strings[objectColumns.p]}${delimiter}${
+            lines_strings[objectColumns.beta]
+          }${delimiter}${lines_strings[objectColumns.se]}\n`,
         );
       }
+    }
+    lineCounter++;
+  });
+
+  readInterface.on('close', function () {
+    stream.end();
+  });
+}
+
+export function writeAnnotationFile(
+  filename: string,
+  output_filename: string,
+  objectColumns: Partial<Column>,
+) {
+  const delimiter = detectDelimiter(filename);
+
+  if (!delimiter) {
+    throw new BadRequestException(
+      'File must have a tab, space or double space delimiter',
+    );
+  }
+
+  const readInterface = readline.createInterface(
+    fs.createReadStream(filename),
+    process.stdout,
+    undefined,
+    false,
+  );
+
+  let stream = fs.createWriteStream(output_filename);
+
+  let lineCounter = 0;
+
+  readInterface.on('line', function (line) {
+    if (lineCounter !== 0) {
+      let lines = line.replace(/(\r\n|\n|\r)/gm, '');
+      let lines_strings = lines.split(delimiter);
+
+      stream.write(
+        `${lines_strings[objectColumns.chr]}${delimiter}${
+          lines_strings[objectColumns.pos]
+        }${delimiter}${lines_strings[objectColumns.pos]}${delimiter}${
+          lines_strings[objectColumns.effect_allele]
+        }${delimiter}${
+          lines_strings[objectColumns.alternate_allele]
+        }${delimiter}${lines_strings[objectColumns.marker_name]}${delimiter}\n`,
+      );
     }
     lineCounter++;
   });

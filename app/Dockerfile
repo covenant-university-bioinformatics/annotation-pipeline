@@ -1,4 +1,4 @@
-FROM node:14.16.1-alpine3.12
+FROM node:16
 
 ENV CI=true
 
@@ -13,6 +13,8 @@ COPY yarn.lock ./
 RUN yarn install
 
 COPY ./ ./
+
+RUN chmod 775 annotation_script-1.sh
 
 #RUN yarn run build
 
