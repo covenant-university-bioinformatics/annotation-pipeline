@@ -19,6 +19,6 @@ export class JobQueue {
   }
 
   async addJob(jobData: WorkerJob) {
-    await this.queue.add(jobData.jobName, jobData);
+    return await this.queue.add(jobData.jobName, jobData);
   }
 }
