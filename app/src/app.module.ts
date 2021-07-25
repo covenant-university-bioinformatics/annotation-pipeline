@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JobsModule } from './jobs/jobs.module';
@@ -19,6 +20,9 @@ import { QueueModule } from './jobqueue/queue.module';
         useUnifiedTopology: true,
       },
     ),
+    // ServeStaticModule.forRoot({
+    //   serveRoot: '/pv/analysis',
+    // }),
     JobsModule,
     QueueModule,
   ],

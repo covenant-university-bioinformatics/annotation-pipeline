@@ -7,6 +7,7 @@ export enum JobStatus {
   FAILED = 'failed',
   ABORTED = 'aborted',
   NOTSTARTED = 'not-started',
+  QUEUED = 'queued',
 }
 export type AnnotationJobDocument = AnnotationJob & Document;
 
@@ -52,6 +53,12 @@ export class AnnotationJob {
   outputFile: string;
 
   @Prop({
+    type: Number,
+    trim: true,
+  })
+  timeUsed: number;
+
+  @Prop({
     type: String,
     enum: [
       JobStatus.COMPLETED,
@@ -59,6 +66,7 @@ export class AnnotationJob {
       JobStatus.RUNNING,
       JobStatus.FAILED,
       JobStatus.ABORTED,
+      JobStatus.QUEUED,
     ],
     default: JobStatus.NOTSTARTED,
   })

@@ -40,6 +40,10 @@ function getJobParameters(parameters: any) {
   ];
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
   for (let i = 0; i < config.numWorkers; i++) {
     console.log('Creating worker ' + i);
@@ -56,20 +60,25 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
             JSON.stringify(job.data.jobName),
         );
 
+        await sleep(4000);
+
         //fetch job parameters from database
         const parameters = await dbModel
           .findById(job.data.jobId)
           .populate('annot')
           .exec();
-        console.log(parameters);
+
+        // console.log(parameters);
 
         //assemble job parameters
         const pathToInputFile = `${parameters.inputFile}`;
         const pathToOutputDir = `/pv/analysis/${job.data.jobUID}/annotation/output`;
         const jobParameters = getJobParameters(parameters);
         jobParameters.unshift(pathToInputFile, pathToOutputDir);
-        console.log(jobParameters);
+        // console.log(jobParameters);
+        //make output directory
         fs.mkdirSync(pathToOutputDir, { recursive: true });
+
         // save in mongo database
         await dbModel.findByIdAndUpdate(
           job.data.jobId,
@@ -83,30 +92,59 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
         const start = Date.now();
         const jobSpawn = spawn('./annotation_script-1.sh', jobParameters);
 
-        jobSpawn.stdout.on('data', (data) => {
-          console.log(`stdout ${job.data.jobName}: ${data}`);
-        });
-
-        jobSpawn.stderr.on('data', (data) => {
-          console.log(`stderr: ${data}`);
-        });
-
+        // jobSpawn.stdout.on('data', (data) => {
+        //   console.log(`stdout ${job.data.jobName}: ${data}`);
+        // });
+        //
+        // jobSpawn.stderr.on('data', (data) => {
+        //   console.log(`stderr: ${data}`);
+        // });
+        //
         jobSpawn.on('error', (error) => {
           console.log(`error: ${error.message}`);
         });
 
         jobSpawn.on('close', async (code) => {
+          const timeUsed = Date.now() - start;
           console.log(
-            `${job.data.jobName}, time: ${
-              Date.now() - start
-            } ,child process exited with code ${code}`,
+            `${job.data.jobName}, time: ${timeUsed} ,child process exited with code ${code}`,
           );
           if (code === 0) {
             console.log('Job completed successfully');
+
+            // save in mongo database
+            // job is complete
+            await dbModel.findByIdAndUpdate(
+              job.data.jobId,
+              {
+                status: JobStatus.COMPLETED,
+                outputFile: `${pathToOutputDir}/annotation_output.hg19_multianno.csv`,
+                timeUsed,
+              },
+              { new: true },
+            );
           } else if (code === null) {
             console.log('Job aborted successfully: ');
+            await dbModel.findByIdAndUpdate(
+              job.data.jobId,
+              {
+                status: JobStatus.ABORTED,
+                timeUsed,
+              },
+              { new: true },
+            );
           } else {
             console.log('Closed ');
+            // save in mongo database
+            // job is complete
+            await dbModel.findByIdAndUpdate(
+              job.data.jobId,
+              {
+                status: JobStatus.FAILED,
+                timeUsed,
+              },
+              { new: true },
+            );
           }
         });
 
@@ -114,7 +152,7 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
       },
       {
         connection: config.connection,
-        concurrency: config.concurrency,
+        // concurrency: config.concurrency,
         limiter: config.limiter,
       },
     );
@@ -127,13 +165,13 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
       console.log('worker ' + i + ' failed ' + job.failedReason);
       //update job in database as failed
       //save in mongo database
-      // await dbModel.findByIdAndUpdate(
-      //   job.data.jobId,
-      //   {
-      //     status: JobStatus.FAILED,
-      //   },
-      //   { new: true },
-      // );
+      await dbModel.findByIdAndUpdate(
+        job.data.jobId,
+        {
+          status: JobStatus.FAILED,
+        },
+        { new: true },
+      );
     });
 
     console.log('Worker ' + i + ' created');

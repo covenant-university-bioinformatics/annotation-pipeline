@@ -10,6 +10,7 @@ import { Model } from 'mongoose';
 import {
   AnnotationJob,
   AnnotationJobDocument,
+  JobStatus,
 } from './models/annotation.jobs.models';
 import { Annotation, AnnotationDocument } from './models/annotation.model';
 import { JobQueue } from '../jobqueue/queue';
@@ -31,14 +32,16 @@ export class JobsService {
     sessionTest.startTransaction();
 
     try {
-      console.log('DTO: ', createJobDto);
+      // console.log('DTO: ', createJobDto);
       const opts = { session };
       const optsTest = { session: sessionTest };
+
       //save job parameters, folder path, filename in database
       const newJob = new this.annotJobModel({
         ...createJobDto,
         jobUID,
         inputFile: filename,
+        jobStatus: JobStatus.QUEUED,
       });
 
       //let the models be created per specific analysis
@@ -56,6 +59,8 @@ export class JobsService {
         jobName: newJob.jobName,
         jobUID: newJob.jobUID,
       });
+
+      console.log('Job added ');
 
       await session.commitTransaction();
       await sessionTest.commitTransaction();
@@ -84,9 +89,9 @@ export class JobsService {
   //   return await this.jobsModel.findById(id).exec();
   // }
 
-  // async getJobForUser(id: string) {
-  //   return await this.jobsModel.findById(id).populate('test').exec();
-  // }
+  async getJobByID(id: string) {
+    return await this.annotJobModel.findById(id).populate('annot').exec();
+  }
 
   // update(id: number, updateJobDto: UpdateJobDto) {
   //   return `This action updates a #${id} job`;

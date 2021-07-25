@@ -1,5 +1,5 @@
 import { Module, OnModuleInit } from '@nestjs/common';
-import { createWorkers } from '../workers';
+import { createWorkers, createScheduler } from '../workers';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   AnnotationJob,
@@ -19,5 +19,6 @@ export class QueueModule implements OnModuleInit {
 
   async onModuleInit() {
     await createWorkers(this.annotJobModel);
+    createScheduler();
   }
 }
