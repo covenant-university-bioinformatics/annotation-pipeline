@@ -6,6 +6,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { config } from './config/mongoose';
 import { QueueModule } from './jobqueue/queue.module';
+import { AuthModule } from './auth/auth.module';
 
 // console.log(config);
 @Module({
@@ -23,6 +24,7 @@ import { QueueModule } from './jobqueue/queue.module';
     // ServeStaticModule.forRoot({
     //   serveRoot: '/pv/analysis',
     // }),
+    AuthModule,
     JobsModule,
     QueueModule,
   ],

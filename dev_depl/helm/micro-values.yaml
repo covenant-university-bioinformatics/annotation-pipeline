@@ -49,21 +49,21 @@ services:
 #https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#serviceport-v1-core
 
 environment:
-  #  - name: NATS_URL
-  #    valueFrom:
-  #      configMapKeyRef:
-  #        name: nats-configmap
-  #        key: nats_url
-  #  - name: NATS_CLUSTER_ID
-  #    value: pgwas-internal
-  #  - name: NATS_CLIENT_ID
-  #    valueFrom:
-  #      fieldRef: metadata.name
-  #  - name: JWT_KEY
-  #    valueFrom:
-  #      secretKeyRef:
-  #        name: jwt-secret
-  #        key: JWT_KEY
+  - name: NATS_URL
+    valueFrom:
+      configMapKeyRef:
+        name: nats-configmap
+        key: nats_url
+  - name: NATS_CLUSTER_ID
+    value: pgwas-internal
+  - name: NATS_CLIENT_ID
+    valueFrom:
+      fieldRef: metadata.name
+  - name: JWT_KEY
+    valueFrom:
+      secretKeyRef:
+        name: jwt-secret
+        key: JWT_KEY
   - name: REDIS_BULL_HOST
     valueFrom:
       configMapKeyRef:

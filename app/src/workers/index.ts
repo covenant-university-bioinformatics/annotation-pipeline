@@ -27,12 +27,12 @@ export enum AnalysisStatus {
 function getJobParameters(parameters: any) {
   return [
     parameters.annot.cytoband,
-    parameters.annot.all_1000g,
-    parameters.annot.afr_1000g,
-    parameters.annot.amr_1000g,
-    parameters.annot.eas_1000g,
-    parameters.annot.eur_1000g,
-    parameters.annot.sas_1000g,
+    parameters.annot.kgp_all,
+    parameters.annot.kgp_afr,
+    parameters.annot.kgp_amr,
+    parameters.annot.kgp_eas,
+    parameters.annot.kgp_eur,
+    parameters.annot.kgp_sas,
     parameters.annot.exac,
     parameters.annot.dbnsfp,
     parameters.annot.clinvar,
@@ -68,14 +68,14 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
           .populate('annot')
           .exec();
 
-        // console.log(parameters);
+        console.log(parameters);
 
         //assemble job parameters
         const pathToInputFile = `${parameters.inputFile}`;
         const pathToOutputDir = `/pv/analysis/${job.data.jobUID}/annotation/output`;
         const jobParameters = getJobParameters(parameters);
         jobParameters.unshift(pathToInputFile, pathToOutputDir);
-        // console.log(jobParameters);
+        console.log(jobParameters);
         //make output directory
         fs.mkdirSync(pathToOutputDir, { recursive: true });
 
@@ -92,14 +92,14 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
         const start = Date.now();
         const jobSpawn = spawn('./annotation_script-1.sh', jobParameters);
 
-        // jobSpawn.stdout.on('data', (data) => {
-        //   console.log(`stdout ${job.data.jobName}: ${data}`);
-        // });
-        //
-        // jobSpawn.stderr.on('data', (data) => {
-        //   console.log(`stderr: ${data}`);
-        // });
-        //
+        jobSpawn.stdout.on('data', (data) => {
+          console.log(`stdout ${job.data.jobName}: ${data}`);
+        });
+
+        jobSpawn.stderr.on('data', (data) => {
+          console.log(`stderr: ${data}`);
+        });
+
         jobSpawn.on('error', (error) => {
           console.log(`error: ${error.message}`);
         });

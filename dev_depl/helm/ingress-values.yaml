@@ -114,10 +114,14 @@ ingress:
           pathType: Prefix
           serviceName: annot-service-deployment-svc-web
           servicePort: 3000
-#        - path: /api/users/?(.*)
-#          pathType: Prefix
-#          serviceName: auth-deployment-svc-web
-#          servicePort: 3000
+        - path: /api/users/?(.*)
+          pathType: Prefix
+          serviceName: auth-deployment-svc-web
+          servicePort: 3000
+        - path: /api/auth/?(.*)
+          pathType: Prefix
+          serviceName: auth-deployment-svc-web
+          servicePort: 3000
 #        - path: /api/jobs/?(.*)
 #          pathType: Prefix
 #          serviceName: jobs-service-deployment-svc-web
