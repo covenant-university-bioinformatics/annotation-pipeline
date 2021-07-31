@@ -3,14 +3,17 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
+  Query,
   Res,
   StreamableFile,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
@@ -26,6 +29,10 @@ import {
 } from '../utils/utilityfunctions';
 import { writeAnnotationFile } from '../utils/validateFile';
 import { JobStatus } from './models/annotation.jobs.models';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from '../decorators/get-user.decorator';
+import { UserDocument } from '../auth/models/user.model';
+import { GetJobsDto } from './dto/getjobs.dto';
 
 const storageOpts = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -39,7 +46,7 @@ const storageOpts = multer.diskStorage({
   },
 });
 
-// @UseGuards(AuthGuard())
+@UseGuards(AuthGuard())
 @Controller('api/annot/jobs')
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
@@ -49,6 +56,7 @@ export class JobsController {
   async create(
     @Body(ValidationPipe) createJobDto: CreateJobDto,
     @UploadedFile() file: Express.Multer.File,
+    @GetUser() user,
   ) {
     if (!file) {
       throw new BadRequestException('Please upload a file');
@@ -117,12 +125,18 @@ export class JobsController {
     // console.log(filename);
 
     //call service
-    return await this.jobsService.create(createJobDto, jobUID, filename);
+    return await this.jobsService.create(createJobDto, jobUID, filename, user);
   }
 
+  // @Get()
+  // findAll(@Res() response) {
+  //   console.log('Executed');
+  //   response.status(200).json(response.advancedResults);
+  // }
+
   @Get()
-  findAll(@Res() response) {
-    response.status(200).json(response.advancedResults);
+  findAll(@Query(ValidationPipe) jobsDto: GetJobsDto, @GetUser() user) {
+    return this.jobsService.findAll(jobsDto, user);
   }
 
   @Get('test')
@@ -133,40 +147,22 @@ export class JobsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.getJob(id);
+  async findOne(@Param('id') id: string, @GetUser() user) {
+    return await this.getJob(id, user);
   }
 
   @Post(':id')
-  async getOutput(@Param('id') id: string) {
-    const job = await this.getJob(id);
+  async getOutput(@Param('id') id: string, @GetUser() user) {
+    const job = await this.getJob(id, user);
 
     const file = fs.createReadStream(job.outputFile);
     return new StreamableFile(file);
   }
 
-  // @Post(':id/abort')
-  // async abortJob(@Param('id') id: string) {
-  //   //  check if job is existing
-  //   const job = await this.getJob(id);
-  //   //  check if job is running
-  //   if (job.status === JobStatus.COMPLETED) {
-  //     throw new BadRequestException('Job is completed');
-  //   }
-  //   //  send abort event to
-  //   console.log('Abort job event sent');
-  //   await this.abortJobPublisher.publish({
-  //     jobId: id,
-  //   });
-  //
-  //   //  return to client
-  //   return { success: true };
-  // }
-
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @GetUser() user) {
     //  check if job is existing
-    const job = await this.getJob(id);
+    const job = await this.getJob(id, user);
     const uid = job.jobUID;
 
     //  check if job is running
@@ -189,13 +185,35 @@ export class JobsController {
     return { success: true };
   }
 
-  async getJob(id: string) {
+  async getJob(id: string, user: UserDocument) {
     const job = await this.jobsService.getJobByID(id);
 
     if (!job) {
       throw new NotFoundException();
     }
 
+    if (job.user.username !== user.username) {
+      throw new ForbiddenException('Access not allowed');
+    }
+
     return job;
   }
+
+  // @Post(':id/abort')
+  // async abortJob(@Param('id') id: string) {
+  //   //  check if job is existing
+  //   const job = await this.getJob(id);
+  //   //  check if job is running
+  //   if (job.status === JobStatus.COMPLETED) {
+  //     throw new BadRequestException('Job is completed');
+  //   }
+  //   //  send abort event to
+  //   console.log('Abort job event sent');
+  //   await this.abortJobPublisher.publish({
+  //     jobId: id,
+  //   });
+  //
+  //   //  return to client
+  //   return { success: true };
+  // }
 }

@@ -22,8 +22,11 @@ const advancedResults = (model, populate) => async (req, res, next) => {
     (match) => `$${match}`,
   );
 
+  // finding user specific results
+  query = model.find({ user: req.user._id });
+
   // finding resource
-  query = model.find(JSON.parse(queryStr));
+  query = query.find(JSON.parse(queryStr));
 
   //select fields
   if (req.query.select) {
@@ -36,15 +39,15 @@ const advancedResults = (model, populate) => async (req, res, next) => {
     const sortBy = req.query.sort.split(',').join(' ');
     query = query.sort(sortBy);
   } else {
-    query = query.sort('-updatedAt');
+    query = query.sort('-createdAt');
   }
-
+  const queryToCount = query;
   //Pagination
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 2;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
-  const total = await model.countDocuments();
+  const total = await queryToCount.countDocuments();
 
   query = query.skip(startIndex).limit(limit);
 
@@ -55,11 +58,19 @@ const advancedResults = (model, populate) => async (req, res, next) => {
   //Executing query
   const results = await query;
 
+  // const total = results.length;
+
   //Pagination result
   // const pagination: Partial<{
   //   next: { page: number; limit: number };
   //   prev: { page: number; limit: number };
   // }> = {};
+
+  console.log('page ', page);
+  console.log('limit ', limit);
+  console.log('startIndex ', startIndex);
+  console.log('endIndex ', endIndex);
+  console.log('total ', total);
 
   const pagination: any = {};
 
@@ -77,6 +88,7 @@ const advancedResults = (model, populate) => async (req, res, next) => {
   res.advancedResults = {
     success: true,
     count: results.length,
+    total,
     pagination,
     data: results,
   };

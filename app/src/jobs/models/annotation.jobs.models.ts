@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as mongoose from 'mongoose';
+import { User } from '../../auth/models/user.model';
 
 export enum JobStatus {
   COMPLETED = 'completed',
@@ -36,7 +38,7 @@ export class AnnotationJob {
     type: String,
     required: [true, 'Please add a name'],
   })
-  jobName: string;
+  job_name: string;
 
   @Prop({
     type: String,
@@ -73,6 +75,13 @@ export class AnnotationJob {
   status: JobStatus;
 
   version: number;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  })
+  user: User;
 }
 
 export const AnnotationJobSchema = SchemaFactory.createForClass(AnnotationJob);

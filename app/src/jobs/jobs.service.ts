@@ -1,6 +1,6 @@
 import {
+  BadRequestException,
   ConflictException,
-  HttpException,
   Inject,
   Injectable,
 } from '@nestjs/common';
@@ -10,10 +10,14 @@ import { Model } from 'mongoose';
 import {
   AnnotationJob,
   AnnotationJobDocument,
+  AnnotationJobSchema,
   JobStatus,
 } from './models/annotation.jobs.models';
 import { Annotation, AnnotationDocument } from './models/annotation.model';
 import { JobQueue } from '../jobqueue/queue';
+import { UserDocument } from '../auth/models/user.model';
+import { deleteFileorFolder } from '../utils/utilityfunctions';
+import { GetJobsDto } from './dto/getjobs.dto';
 
 @Injectable()
 export class JobsService {
@@ -25,14 +29,19 @@ export class JobsService {
     private jobQueue: JobQueue,
   ) {}
 
-  async create(createJobDto: CreateJobDto, jobUID: string, filename: string) {
+  async create(
+    createJobDto: CreateJobDto,
+    jobUID: string,
+    filename: string,
+    user: UserDocument,
+  ) {
     const session = await this.annotJobModel.startSession();
     const sessionTest = await this.annotModel.startSession();
     session.startTransaction();
     sessionTest.startTransaction();
 
     try {
-      // console.log('DTO: ', createJobDto);
+      console.log('DTO: ', createJobDto);
       const opts = { session };
       const optsTest = { session: sessionTest };
 
@@ -42,6 +51,7 @@ export class JobsService {
         jobUID,
         inputFile: filename,
         jobStatus: JobStatus.QUEUED,
+        user: user.id,
       });
 
       //let the models be created per specific analysis
@@ -56,7 +66,7 @@ export class JobsService {
       //add job to queue
       await this.jobQueue.addJob({
         jobId: newJob.id,
-        jobName: newJob.jobName,
+        jobName: newJob.job_name,
         jobUID: newJob.jobUID,
       });
 
@@ -74,15 +84,83 @@ export class JobsService {
       }
       await session.abortTransaction();
       await sessionTest.abortTransaction();
-      throw new HttpException(e.message, 400);
+      deleteFileorFolder(`/pv/analysis/${jobUID}`).then(() => {
+        // console.log('deleted');
+      });
+      throw new BadRequestException(e.message);
     } finally {
       session.endSession();
       sessionTest.endSession();
     }
   }
 
-  findAll() {
-    return `This action returns all jobs`;
+  async findAll(getJobsDto: GetJobsDto, user: UserDocument) {
+    await sleep(4000);
+    const sortVariable = getJobsDto.sort ? getJobsDto.sort : 'createdAt';
+    const limit = getJobsDto.limit ? parseInt(getJobsDto.limit, 10) : 2;
+    const page =
+      getJobsDto.page || getJobsDto.page === '0'
+        ? parseInt(getJobsDto.page, 10)
+        : 1;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const result = await this.annotJobModel.aggregate([
+      { $match: { user: user._id } },
+      { $sort: { [sortVariable]: -1 } },
+      {
+        $lookup: {
+          from: 'annotations',
+          localField: '_id',
+          foreignField: 'job',
+          as: 'annot',
+        },
+      },
+      {
+        $facet: {
+          count: [{ $group: { _id: null, count: { $sum: 1 } } }],
+          sample: [{ $skip: startIndex }, { $limit: limit }],
+        },
+      },
+      { $unwind: '$count' },
+      {
+        $project: {
+          count: '$count.count',
+          data: '$sample',
+        },
+      },
+    ]);
+
+    if (result[0]) {
+      const { count, data } = result[0];
+
+      const pagination: any = {};
+
+      if (endIndex < count) {
+        pagination.next = { page: page + 1, limit };
+      }
+
+      if (startIndex > 0) {
+        pagination.prev = {
+          page: page - 1,
+          limit,
+        };
+      }
+      //
+      return {
+        success: true,
+        count: data.length,
+        total: count,
+        pagination,
+        data,
+      };
+    }
+    return {
+      success: true,
+      count: 0,
+      total: 0,
+      data: [],
+    };
   }
 
   // async findOne(id: string) {
@@ -91,49 +169,10 @@ export class JobsService {
 
   async getJobByID(id: string) {
     return await this.annotJobModel.findById(id).populate('annot').exec();
+    // .populate('user')
   }
+}
 
-  // update(id: number, updateJobDto: UpdateJobDto) {
-  //   return `This action updates a #${id} job`;
-  // }
-
-  // async updateStatus(job: JobsDocument, status: JobStatus) {}
-
-  // async removeById(id: string) {
-  //   // delete job
-  //   return await this.jobsModel
-  //     .remove({
-  //       _id: id,
-  //     })
-  //     .exec();
-  // }
-
-  // private getAnalysisTypes(createJobDto: CreateJobDto): AnaylsisTypes[] {
-  //   const types = [];
-  //   for (const jobDtoKey in createJobDto) {
-  //     if (createJobDto.hasOwnProperty(jobDtoKey)) {
-  //       switch (jobDtoKey) {
-  //         case 'testjob':
-  //           types.push(jobDtoKey);
-  //           break;
-  //         case 'imputation':
-  //           types.push(jobDtoKey);
-  //           break;
-  //         case 'bayes-finemap':
-  //           types.push(jobDtoKey);
-  //           break;
-  //         case 'ld-structure':
-  //           types.push(jobDtoKey);
-  //           break;
-  //       }
-  //     }
-  //   }
-  //   return types;
-  // }
-
-  // validateFile(filePath: string): true | string[] {
-  //   //check file mime type and size
-  //   //file correctness check
-  //   return true;
-  // }
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

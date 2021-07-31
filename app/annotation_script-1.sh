@@ -82,8 +82,8 @@ then
   OPERATION="${OPERATION},f"
 fi
 
-#echo $DATABASES
-#echo $OPERATION
+echo $DATABASES
+echo $OPERATION
 
 perl "${bin_dir}/table_annovar.pl" "${inputFile}" "${bin_dir}/humandb/" -buildver hg19 \
     -out "${outputDir}/annotation_output" -remove -protocol ${DATABASES} \

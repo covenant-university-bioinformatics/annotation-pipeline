@@ -26,37 +26,37 @@ export class Annotation {
     type: Boolean,
     default: false,
   })
-  all_1000g: string;
+  kgp_all: string;
 
   @Prop({
     type: Boolean,
     default: false,
   })
-  afr_1000g: string;
+  kgp_afr: string;
 
   @Prop({
     type: Boolean,
     default: false,
   })
-  amr_1000g: string;
+  kgp_amr: string;
 
   @Prop({
     type: Boolean,
     default: false,
   })
-  eas_1000g: string;
+  kgp_eas: string;
 
   @Prop({
     type: Boolean,
     default: false,
   })
-  eur_1000g: string;
+  kgp_eur: string;
 
   @Prop({
     type: Boolean,
     default: false,
   })
-  sas_1000g: string;
+  kgp_sas: string;
 
   @Prop({
     type: Boolean,

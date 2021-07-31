@@ -4,6 +4,7 @@ import {
   MaxLength,
   MinLength,
   IsBooleanString,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateJobDto {
@@ -31,22 +32,22 @@ export class CreateJobDto {
   cytoband: string;
 
   @IsBooleanString()
-  all_1000g: string;
+  kgp_all: string;
 
   @IsBooleanString()
-  afr_1000g: string;
+  kgp_afr: string;
 
   @IsBooleanString()
-  amr_1000g: string;
+  kgp_amr: string;
 
   @IsBooleanString()
-  eas_1000g: string;
+  kgp_eas: string;
 
   @IsBooleanString()
-  eur_1000g: string;
+  kgp_eur: string;
 
   @IsBooleanString()
-  sas_1000g: string;
+  kgp_sas: string;
 
   @IsBooleanString()
   exac: string;
