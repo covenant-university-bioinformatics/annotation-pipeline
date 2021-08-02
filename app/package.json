@@ -30,6 +30,7 @@
     "bullmq": "^1.39.5",
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "fs-extra": "^10.0.0",
     "mongoose": "^5.13.3",

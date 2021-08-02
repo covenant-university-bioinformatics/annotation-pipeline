@@ -34,7 +34,7 @@ function getJobParameters(parameters: any) {
     parameters.annot.kgp_eur,
     parameters.annot.kgp_sas,
     parameters.annot.exac,
-    parameters.annot.dbnsfp,
+    parameters.annot.disgenet,
     parameters.annot.clinvar,
     parameters.annot.intervar,
   ];
@@ -60,7 +60,7 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
             JSON.stringify(job.data.jobName),
         );
 
-        await sleep(4000);
+        await sleep(2000);
 
         //fetch job parameters from database
         const parameters = await dbModel
@@ -90,7 +90,10 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
 
         //spawn process
         const start = Date.now();
-        const jobSpawn = spawn('./annotation_script-1.sh', jobParameters);
+        const jobSpawn = spawn(
+          './pipeline_scripts/annotation_script-1.sh',
+          jobParameters,
+        );
 
         jobSpawn.stdout.on('data', (data) => {
           console.log(`stdout ${job.data.jobName}: ${data}`);
@@ -118,8 +121,11 @@ export const createWorkers = async (dbModel: Model<AnnotationJobDocument>) => {
               job.data.jobId,
               {
                 status: JobStatus.COMPLETED,
-                outputFile: `${pathToOutputDir}/annotation_output.hg19_multianno.csv`,
-                timeUsed,
+                outputFile: `${pathToOutputDir}/annotation_output.hg19_multianno_full.tsv`,
+                ...(parameters.disgenet === 'true' && {
+                  disgenet: `${pathToOutputDir}/disgenet.txt`,
+                }),
+                snp_plot: `${pathToOutputDir}/snp_plot.jpg`,
               },
               { new: true },
             );

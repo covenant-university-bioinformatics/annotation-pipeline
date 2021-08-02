@@ -34,3 +34,7 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
+          - src: "**/*.R"
+            dest: .
+          - src: "**/*.sh"
+            dest: .

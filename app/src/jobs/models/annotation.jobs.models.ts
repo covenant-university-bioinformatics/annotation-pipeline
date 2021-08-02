@@ -55,10 +55,22 @@ export class AnnotationJob {
   outputFile: string;
 
   @Prop({
-    type: Number,
+    type: String,
     trim: true,
   })
-  timeUsed: number;
+  disgenet: string;
+
+  @Prop({
+    type: String,
+    trim: true,
+  })
+  snp_plot: string;
+
+  // @Prop({
+  //   type: Number,
+  //   trim: true,
+  // })
+  // timeUsed: number;
 
   @Prop({
     type: String,
@@ -89,7 +101,7 @@ export const AnnotationJobSchema = SchemaFactory.createForClass(AnnotationJob);
 //Cascade delete main job parameters when job is deleted
 AnnotationJobSchema.pre('remove', async function (next) {
   console.log('Job parameters being removed!');
-  await this.model('Test').deleteMany({
+  await this.model('Annotation').deleteMany({
     job: this.id,
   });
   next();

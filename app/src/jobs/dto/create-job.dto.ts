@@ -53,7 +53,7 @@ export class CreateJobDto {
   exac: string;
 
   @IsBooleanString()
-  dbnsfp: string;
+  disgenet: string;
 
   @IsBooleanString()
   clinvar: string;

@@ -18,9 +18,10 @@ EAS=$7
 EUR=$8
 SAS=$9
 EXAC=${10}
-DBNSFP=${11}
+DISGENET=${11}
 CLINVAR=${12}
 INTERVAR=${13}
+
 DATABASES="refGene";
 OPERATION="gx"
 #python sumstat2avinput.py $1  # argument1 is the summary statistic file we want to annotate
@@ -66,11 +67,6 @@ then
   DATABASES="${DATABASES},exac03"
   OPERATION="${OPERATION},f"
 fi
-if [[ $DBNSFP == true ]]
-then
-  DATABASES="${DATABASES},dbnsfp30a"
-  OPERATION="${OPERATION},f"
-fi
 if [[ $CLINVAR == true ]]
 then
   DATABASES="${DATABASES},clinvar_20170130"
@@ -88,6 +84,9 @@ echo $OPERATION
 perl "${bin_dir}/table_annovar.pl" "${inputFile}" "${bin_dir}/humandb/" -buildver hg19 \
     -out "${outputDir}/annotation_output" -remove -protocol ${DATABASES} \
     -operation $OPERATION -nastring . -csvout -polish -xref "${bin_dir}/example/gene_xref.txt"
+
+#run rscript
+Rscript pipeline_scripts/disgenet_script.R ${DISGENET} ${inputFile} ${outputDir}
 
 #echo "the output file is annotation_output.refGene.variant_function "
 #less annotation_output.refGene.variant_function
