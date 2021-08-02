@@ -95,7 +95,7 @@ export class JobsService {
   }
 
   async findAll(getJobsDto: GetJobsDto, user: UserDocument) {
-    await sleep(4000);
+    await sleep(1000);
     const sortVariable = getJobsDto.sort ? getJobsDto.sort : 'createdAt';
     const limit = getJobsDto.limit ? parseInt(getJobsDto.limit, 10) : 2;
     const page =
@@ -168,8 +168,11 @@ export class JobsService {
   // }
 
   async getJobByID(id: string) {
-    return await this.annotJobModel.findById(id).populate('annot').exec();
-    // .populate('user')
+    return await this.annotJobModel
+      .findById(id)
+      .populate('user')
+      .populate('annot')
+      .exec();
   }
 }
 

@@ -123,7 +123,9 @@ volumes:
       - name: humandb
         path: /run/desktop/mnt/host/c/Users/daref/Downloads/annovar/
         mountPath: /local/datasets
-
+      - name: disgenet
+        path: /run/desktop/mnt/host/c/Users/daref/Downloads/disgenet/
+        mountPath: /local/disgenet
 #  configMaps:
 #    - name: sqlfile
 #      mountPath: /data/sqls

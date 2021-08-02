@@ -151,12 +151,15 @@ export class JobsController {
     return await this.getJob(id, user);
   }
 
-  @Post(':id')
+  @Get('/output/:id')
   async getOutput(@Param('id') id: string, @GetUser() user) {
     const job = await this.getJob(id, user);
 
     const file = fs.createReadStream(job.outputFile);
+    // file.pipe(res);
     return new StreamableFile(file);
+    // stream.getStream().read();
+    // return stream;
   }
 
   @Delete(':id')
@@ -179,6 +182,7 @@ export class JobsController {
       //delete all files in jobUID folder
       await deleteFileorFolder(`/pv/analysis/${uid}`);
     } catch (e) {
+      console.log(e);
       throw new InternalServerErrorException('Please try again');
     }
 

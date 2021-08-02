@@ -328,15 +328,18 @@ export function writeAnnotationFile(
     if (lineCounter !== 0) {
       let lines = line.replace(/(\r\n|\n|\r)/gm, '');
       let lines_strings = lines.split(delimiter);
+      const newFileDelim = '\t';
 
       stream.write(
-        `${lines_strings[objectColumns.chr]}${delimiter}${
+        `${lines_strings[objectColumns.chr]}${newFileDelim}${
           lines_strings[objectColumns.pos]
-        }${delimiter}${lines_strings[objectColumns.pos]}${delimiter}${
+        }${newFileDelim}${lines_strings[objectColumns.pos]}${newFileDelim}${
           lines_strings[objectColumns.effect_allele]
-        }${delimiter}${
+        }${newFileDelim}${
           lines_strings[objectColumns.alternate_allele]
-        }${delimiter}${lines_strings[objectColumns.marker_name]}${delimiter}\n`,
+        }${newFileDelim}${
+          lines_strings[objectColumns.marker_name]
+        }${newFileDelim}\n`,
       );
     }
     lineCounter++;

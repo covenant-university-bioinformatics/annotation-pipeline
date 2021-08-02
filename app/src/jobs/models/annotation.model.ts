@@ -68,7 +68,7 @@ export class Annotation {
     type: Boolean,
     default: false,
   })
-  dbnsfp: string;
+  disgenet: string;
 
   @Prop({
     type: Boolean,
