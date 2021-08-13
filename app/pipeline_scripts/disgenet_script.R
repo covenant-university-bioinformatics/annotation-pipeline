@@ -7,7 +7,7 @@ disgenet_db <- FALSE
 input_file <- ""
 output_path <- ""
 #where data files are located
-bin_dir <- "/local/disgenet"
+bin_dir <- "/local/datasets/disgenet"
 
 
 findDiseases <- function(snp) {
@@ -30,9 +30,9 @@ if (length(args) >= 1) {
   }
   input_file <- args[2]
   output_path <- args[3]
-  print(args[1])
-  print(input_file)
-  print(output_path)
+#   print(args[1])
+#   print(input_file)
+#   print(output_path)
 }
 
 #remember to change the file separator
@@ -62,14 +62,25 @@ write.table(allsnps, paste(output_path,'annotation_output.hg19_multianno_full.ts
 
 #plot snp locations
 dd <- table(myanno$Func.refGene)
-dd <- as.data.frame(dd)
-colnames(dd) <- c('group', 'value')
+dd <- as.data.frame(dd, stringsAsFactors=F)
+dd[dd=='.'] <- 'NA'
+dd$Freq <- as.integer(dd$Freq)
+colnames(dd) <- c('Group', 'value')
 
 
-ggplot(dd, aes(x="", y=value, fill=group)) +
+ggplot(dd, aes(x="", y=value, fill=Group)) +
   geom_bar(stat="identity", width=1, color="white") +
   coord_polar("y", start=0) +
   
-  theme_void() # remove background, grid, numeric labels
-
-ggsave(paste(output_path, 'snp_plot.jpg', sep = '/'))
+  theme(axis.text = element_blank(), axis.ticks = element_blank(),
+  panel.background=element_blank(),
+  legend.text = element_text(size = 12, face = "bold"),
+        panel.grid  = element_blank(),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()
+        )
+ggsave(paste(output_path, 'snp_plot.jpg', sep = '/'), units="in", width=5, height=4, dpi=320)

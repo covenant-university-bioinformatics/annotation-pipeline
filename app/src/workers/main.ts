@@ -6,6 +6,7 @@ import {
   JobStatus,
 } from '../jobs/models/annotation.jobs.model';
 import * as path from 'path';
+import { AnnotationModel } from '../jobs/models/annotation.model';
 
 let scheduler;
 
@@ -25,7 +26,6 @@ const processorFile = path.join(__dirname, 'worker.js');
 
 export const createWorkers = async () => {
   createScheduler();
-  console.log(config);
   for (let i = 0; i < config.numWorkers; i++) {
     console.log('Creating worker ' + i);
 
@@ -35,8 +35,29 @@ export const createWorkers = async () => {
       limiter: config.limiter,
     });
 
-    worker.on('completed', (job: Job, returnvalue: any) => {
+    worker.on('completed', async (job: Job, returnvalue: any) => {
       console.log('worker ' + i + ' completed ' + returnvalue);
+
+      // save in mongo database
+      // job is complete
+      const parameters = await AnnotationModel.findOne({
+        job: job.data.jobId,
+      }).exec();
+
+      // const jobParams = await AnnotationJobsModel.findById(job.data.jobId).exec();
+      const pathToOutputDir = `/pv/analysis/${job.data.jobUID}/annotation/output`;
+      await AnnotationJobsModel.findByIdAndUpdate(
+        job.data.jobId,
+        {
+          status: JobStatus.COMPLETED,
+          outputFile: `${pathToOutputDir}/annotation_output.hg19_multianno_full.tsv`,
+          ...(parameters.disgenet === true && {
+            disgenet: `${pathToOutputDir}/disgenet.txt`,
+          }),
+          snp_plot: `${pathToOutputDir}/snp_plot.jpg`,
+        },
+        { new: true },
+      );
     });
 
     worker.on('failed', async (job: Job) => {

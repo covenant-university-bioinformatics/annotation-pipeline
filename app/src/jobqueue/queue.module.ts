@@ -1,11 +1,5 @@
 import { Module, OnModuleInit } from '@nestjs/common';
-import { createWorkers, createScheduler } from '../workers';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  AnnotationJob,
-  AnnotationJobDocument,
-} from '../jobs/models/annotation.jobs.models';
-import { Model } from 'mongoose';
+import { createWorkers } from '../workers/main';
 import { JobQueue } from './queue';
 
 @Module({
@@ -14,11 +8,8 @@ import { JobQueue } from './queue';
   exports: [JobQueue],
 })
 export class QueueModule implements OnModuleInit {
-  @InjectModel(AnnotationJob.name)
-  private annotJobModel: Model<AnnotationJobDocument>;
-
   async onModuleInit() {
-    await createWorkers(this.annotJobModel);
-    createScheduler();
+    // createScheduler();
+    await createWorkers();
   }
 }

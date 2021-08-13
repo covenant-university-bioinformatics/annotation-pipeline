@@ -15,6 +15,7 @@ export class JobQueue {
   constructor() {
     this.queue = new Queue<WorkerJob>(config.queueName, {
       connection: config.connection,
+      // limiter: { groupKey: config.limiter.groupKey },
     });
   }
 

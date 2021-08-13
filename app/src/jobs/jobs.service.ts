@@ -5,26 +5,20 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import {
-  AnnotationJob,
-  AnnotationJobDocument,
-  AnnotationJobSchema,
+  AnnotationJobsDoc,
+  AnnotationJobsModel,
   JobStatus,
-} from './models/annotation.jobs.models';
-import { Annotation, AnnotationDocument } from './models/annotation.model';
+} from './models/annotation.jobs.model';
+import { AnnotationModel } from './models/annotation.model';
 import { JobQueue } from '../jobqueue/queue';
-import { UserDocument } from '../auth/models/user.model';
+import { UserDoc } from '../auth/models/user.model';
 import { deleteFileorFolder } from '../utils/utilityfunctions';
 import { GetJobsDto } from './dto/getjobs.dto';
 
 @Injectable()
 export class JobsService {
   constructor(
-    @InjectModel(AnnotationJob.name)
-    private annotJobModel: Model<AnnotationJobDocument>,
-    @InjectModel(Annotation.name) private annotModel: Model<AnnotationDocument>,
     @Inject(JobQueue)
     private jobQueue: JobQueue,
   ) {}
@@ -33,29 +27,29 @@ export class JobsService {
     createJobDto: CreateJobDto,
     jobUID: string,
     filename: string,
-    user: UserDocument,
+    user: UserDoc,
   ) {
-    const session = await this.annotJobModel.startSession();
-    const sessionTest = await this.annotModel.startSession();
+    const session = await AnnotationJobsModel.startSession();
+    const sessionTest = await AnnotationModel.startSession();
     session.startTransaction();
     sessionTest.startTransaction();
 
     try {
-      console.log('DTO: ', createJobDto);
+      // console.log('DTO: ', createJobDto);
       const opts = { session };
       const optsTest = { session: sessionTest };
 
       //save job parameters, folder path, filename in database
-      const newJob = new this.annotJobModel({
-        ...createJobDto,
+      const newJob = await AnnotationJobsModel.build({
+        job_name: createJobDto.job_name,
         jobUID,
         inputFile: filename,
-        jobStatus: JobStatus.QUEUED,
+        status: JobStatus.QUEUED,
         user: user.id,
       });
 
       //let the models be created per specific analysis
-      const annotJob = new this.annotModel({
+      const annotJob = await AnnotationModel.build({
         ...createJobDto,
         job: newJob.id,
       });
@@ -70,7 +64,7 @@ export class JobsService {
         jobUID: newJob.jobUID,
       });
 
-      console.log('Job added ');
+      // console.log('Job added ');
 
       await session.commitTransaction();
       await sessionTest.commitTransaction();
@@ -93,9 +87,16 @@ export class JobsService {
       sessionTest.endSession();
     }
   }
-
-  async findAll(getJobsDto: GetJobsDto, user: UserDocument) {
-    await sleep(1000);
+  // {
+  //   $lookup: {
+  //     from: 'annotations',
+  //     localField: '_id',
+  //     foreignField: 'job',
+  //     as: 'annot',
+  //   },
+  // },
+  async findAll(getJobsDto: GetJobsDto, user: UserDoc) {
+    // await sleep(1000);
     const sortVariable = getJobsDto.sort ? getJobsDto.sort : 'createdAt';
     const limit = getJobsDto.limit ? parseInt(getJobsDto.limit, 10) : 2;
     const page =
@@ -105,15 +106,15 @@ export class JobsService {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    const result = await this.annotJobModel.aggregate([
+    const result = await AnnotationJobsModel.aggregate([
       { $match: { user: user._id } },
       { $sort: { [sortVariable]: -1 } },
       {
-        $lookup: {
-          from: 'annotations',
-          localField: '_id',
-          foreignField: 'job',
-          as: 'annot',
+        $project: {
+          _id: 1,
+          status: 1,
+          job_name: 1,
+          createdAt: 1,
         },
       },
       {
@@ -168,11 +169,14 @@ export class JobsService {
   // }
 
   async getJobByID(id: string) {
-    return await this.annotJobModel
-      .findById(id)
-      .populate('user')
+    return await AnnotationJobsModel.findById(id)
       .populate('annot')
+      .populate('user')
       .exec();
+  }
+
+  async deleteManyJobs(user: UserDoc): Promise<AnnotationJobsDoc[]> {
+    return await AnnotationJobsModel.find({ user: user._id }).exec();
   }
 }
 

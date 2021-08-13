@@ -115,6 +115,12 @@ spec:
               name: {{ $hpath.name }}-volume
             {{- end }}
             {{- end }}
+            {{- if .Values.volumes.network.enabled }}
+            {{- range $hpath := .Values.volumes.network.nfs }}
+            - mountPath: {{ $hpath.mountPath }}
+              name: {{ $hpath.name }}-volume
+            {{- end }}
+            {{- end }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -234,6 +240,14 @@ spec:
         - name: {{ $hpath.name }}-volume
           hostPath:
             path: {{ $hpath.path }}
+       {{- end }}
+       {{- end }}
+       {{- if .Values.volumes.network.enabled }}
+       {{- range $hpath := .Values.volumes.network.nfs }}
+        - name: {{ $hpath.name }}-volume
+          nfs:
+            path: {{ $hpath.path }}
+            server: {{ $hpath.server }}
        {{- end }}
        {{- end }}
        {{- if .Values.fileConfigMap }}
