@@ -49,20 +49,20 @@ export class JobsService {
       });
 
       //let the models be created per specific analysis
-      const annotJob = await AnnotationModel.build({
+      const annot = await AnnotationModel.build({
         ...createJobDto,
         job: newJob.id,
       });
 
-      await annotJob.save(optsTest);
+      await annot.save(optsTest);
       await newJob.save(opts);
 
       //add job to queue
-      await this.jobQueue.addJob({
-        jobId: newJob.id,
-        jobName: newJob.job_name,
-        jobUID: newJob.jobUID,
-      });
+      // await this.jobQueue.addJob({
+      //   jobId: newJob.id,
+      //   jobName: newJob.job_name,
+      //   jobUID: newJob.jobUID,
+      // });
 
       // console.log('Job added ');
 

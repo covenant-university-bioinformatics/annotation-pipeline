@@ -17,7 +17,7 @@ interface UserAttrs {
 // An interface that describes the extra properties that a ticket model has
 //collection level methods
 interface UserModel extends mongoose.Model<UserDoc> {
-  build(attrs: UserAttrs): UserDoc;
+  build(attrs: UserAttrs): Promise<UserDoc>;
 }
 
 //An interface that describes a properties that a document has
@@ -83,8 +83,8 @@ userSchema.set('versionKey', 'version');
 userSchema.plugin(updateIfCurrentPlugin);
 
 //collection level methods
-userSchema.statics.build = (attrs: UserAttrs) => {
-  return User.create(attrs);
+userSchema.statics.build = async (attrs: UserAttrs) => {
+  return await User.create(attrs);
 };
 
 //create mongoose model
