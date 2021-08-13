@@ -103,8 +103,8 @@ volumes:
     name:
     existing_claim: analysis-storage
     mountPath: /pv/analysis
-    size: 20Gi
-    class: hostpath
+    size: 200Gi
+    class: nfs-client
     accessModes:
       - ReadWriteMany
   internal:

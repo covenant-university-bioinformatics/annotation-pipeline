@@ -64,10 +64,15 @@ environment:
       secretKeyRef:
         name: jwt-secret
         key: JWT_KEY
+  - name: REDIS_BULL_HOST
+    valueFrom:
+      configMapKeyRef:
+        name: redis-bullmq-configmap
+        key: database_url
   - name: MONGO_HOST
     valueFrom:
       configMapKeyRef:
-        name: jobsmongo-configmap
+        name: pgwasmongo-configmap
         key: database_url
   - name: MONGODB_USER
     valueFrom:
@@ -83,19 +88,9 @@ environment:
     valueFrom:
       secretKeyRef:
         name: mongo-secret
-        key: mongo-jobs-db
+        key: mongo-annot-db
   - name: MONGODB_PODNAME
-    value: jobs-mongo
-  #  - name: REDIS_HOST
-  #    valueFrom:
-  #      configMapKeyRef:
-  #        name: expiration-redis-configmap
-  #        key: redis_host
-#  - name: POSTGRES_URI
-#    valueFrom:
-#      configMapKeyRef:
-#        name: auth-postgres-configmap
-#        key: database_url
+    value: pgwas-mongo
 
 dbConfigMap: false
 eventConfigMap: false
@@ -105,13 +100,29 @@ volumes:
   enabled: true
   pvc:
     enabled: true
-    existing_claim: workers-storage
     name:
+    existing_claim: analysis-storage
     mountPath: /pv/analysis
     size: 20Gi
-    class:
+    class: hostpath
     accessModes:
-      - ReadWriteOnce
+      - ReadWriteMany
+  internal:
+    enabled: true
+    hostpath:
+      - name: humandb
+        path: /run/desktop/mnt/host/c/Users/daref/Downloads/annovar/
+        mountPath: /local/datasets
+      - name: disgenet
+        path: /run/desktop/mnt/host/c/Users/daref/Downloads/disgenet/
+        mountPath: /local/disgenet
+  network:
+    enabled: false
+    nfs:
+      - name: nfspgwas
+        server: 207.154.231.244
+        path: /mnt/volume_fra1_03
+        mountPath: /local/datasets
 
 #  configMaps:
 #    - name: sqlfile
@@ -135,44 +146,10 @@ ingress:
 ##
 resources:
   limits:
-    cpu: 1
+    cpu: 2
     memory: 2000Mi
   requests:
-    cpu: 500m
-    memory: 500Mi
+    cpu: 2000m
+    memory: 2000Mi
 
 enableInitContainers: false
-initContainers:
-  init:
-    name: checkservice
-    image: busybox:1.28
-    command: [ 'sh', '-c', "until nslookup personnel-postgres-database-svc-web.dbs; do echo waiting for postgresdb service; sleep 2; done" ]
-  createdb:
-    name: createdb
-    image: governmentpaas/psql
-    env:
-      - name: PGPASSWORD
-        valueFrom:
-          secretKeyRef:
-            key: pg-root-password
-            name: postgres-secret
-      - name: SQL_FILE
-        valueFrom:
-          configMapKeyRef:
-            name: sqlfile
-            key: createdb
-    command:
-      - "psql"
-      - "-w"
-      - "-h"
-      - "personnel-postgres-database-svc-web.dbs"
-      - "-p"
-      - "5432"
-      - "-U"
-      - "cubre_root"
-      - "-f"
-      - "/data/sqls/createdb"
-      - "postgres"
-    volumeMount:
-      name: db-volume
-      mountPath: /data/sqls

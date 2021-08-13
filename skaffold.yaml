@@ -29,7 +29,7 @@ build:
     - image: cubrenig/pgwasannot-service
       context: app
       docker:
-        dockerfile: Dockerfile
+        dockerfile: Dockerfile.dev
       sync:
         manual:
           - src: "src/**/*.ts"
