@@ -10,7 +10,6 @@ import {
   Param,
   Post,
   Query,
-  Res,
   StreamableFile,
   UploadedFile,
   UseGuards,
@@ -28,10 +27,10 @@ import {
   fileOrPathExists,
 } from '../utils/utilityfunctions';
 import { writeAnnotationFile } from '../utils/validateFile';
-import { JobStatus } from './models/annotation.jobs.models';
+import { JobStatus } from './models/annotation.jobs.model';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../decorators/get-user.decorator';
-import { UserDocument } from '../auth/models/user.model';
+import { UserDoc } from '../auth/models/user.model';
 import { GetJobsDto } from './dto/getjobs.dto';
 
 const storageOpts = multer.diskStorage({
@@ -148,18 +147,36 @@ export class JobsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string, @GetUser() user) {
-    return await this.getJob(id, user);
+    const job = await this.getJob(id, user);
+    // console.log('Throwing error');
+    // throw Error('Testing');
+
+    job.user = null;
+    return job;
   }
 
-  @Get('/output/:id')
-  async getOutput(@Param('id') id: string, @GetUser() user) {
+  @Get('/output/:id/:file')
+  async getOutput(
+    @Param('id') id: string,
+    @Param('file') file_key: string,
+    @GetUser() user,
+  ) {
     const job = await this.getJob(id, user);
+    const fileExists = await fileOrPathExists(job[file_key]);
+    if (fileExists) {
+      try {
+        const file = fs.createReadStream(job[file_key]);
 
-    const file = fs.createReadStream(job.outputFile);
-    // file.pipe(res);
-    return new StreamableFile(file);
-    // stream.getStream().read();
-    // return stream;
+        return new StreamableFile(file);
+      } catch (e) {
+        console.log(e);
+        throw new BadRequestException(e.message);
+      }
+    } else {
+      throw new BadRequestException(
+        'File not available! Job probably still running or parameter not selected',
+      );
+    }
   }
 
   @Delete(':id')
@@ -189,7 +206,43 @@ export class JobsController {
     return { success: true };
   }
 
-  async getJob(id: string, user: UserDocument) {
+  @Delete()
+  async deleteMany(@Param('id') id: string, @GetUser() user) {
+    const jobs = await this.jobsService.deleteManyJobs(user);
+
+    if (jobs.length > 0) {
+      //  check if job is running
+      const jobRunning = jobs.some(
+        (job) =>
+          job.status === JobStatus.RUNNING || job.status === JobStatus.QUEUED,
+      );
+
+      if (jobRunning) {
+        throw new BadRequestException(
+          'Some Jobs are still running, wait for it to complete',
+        );
+      }
+
+      const deletedJobs = jobs.map(async (job) => {
+        // if job is not running, delete in database
+        await job.remove();
+
+        //delete all files in jobUID folder
+        await deleteFileorFolder(`/pv/analysis/${job.jobUID}`);
+      });
+
+      try {
+        await Promise.all(deletedJobs);
+      } catch (e) {
+        console.log(e);
+        throw new InternalServerErrorException('Please try again');
+      }
+    }
+
+    return { success: true };
+  }
+
+  async getJob(id: string, user: UserDoc) {
     const job = await this.jobsService.getJobByID(id);
 
     if (!job) {

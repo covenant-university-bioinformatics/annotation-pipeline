@@ -6,7 +6,7 @@
 # echo an error message before exiting
 #trap 'echo "\"${last_command}\" command failed with exit code $?." >&2' EXIT
 
-bin_dir="/local/datasets"
+bin_dir="/local/datasets/annovar"
 
 inputFile=$1
 outputDir=$2

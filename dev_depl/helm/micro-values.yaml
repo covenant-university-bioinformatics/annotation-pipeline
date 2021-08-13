@@ -91,16 +91,6 @@ environment:
         key: mongo-annot-db
   - name: MONGODB_PODNAME
     value: pgwas-mongo
-  #  - name: REDIS_HOST
-  #    valueFrom:
-  #      configMapKeyRef:
-  #        name: expiration-redis-configmap
-  #        key: redis_host
-#  - name: POSTGRES_URI
-#    valueFrom:
-#      configMapKeyRef:
-#        name: auth-postgres-configmap
-#        key: database_url
 
 dbConfigMap: false
 eventConfigMap: false
@@ -116,9 +106,9 @@ volumes:
     size: 20Gi
     class: hostpath
     accessModes:
-      - ReadWriteOnce
+      - ReadWriteMany
   internal:
-    enabled: true
+    enabled: false
     hostpath:
       - name: humandb
         path: /run/desktop/mnt/host/c/Users/daref/Downloads/annovar/
@@ -126,6 +116,14 @@ volumes:
       - name: disgenet
         path: /run/desktop/mnt/host/c/Users/daref/Downloads/disgenet/
         mountPath: /local/disgenet
+  network:
+    enabled: true
+    nfs:
+      - name: nfspgwas
+        server: 207.154.231.244
+        path: /mnt/volume_fra1_03
+        mountPath: /local/datasets
+
 #  configMaps:
 #    - name: sqlfile
 #      mountPath: /data/sqls
@@ -148,10 +146,10 @@ ingress:
 ##
 resources:
   limits:
-    cpu: 1
+    cpu: 2
     memory: 2000Mi
   requests:
-    cpu: 500m
-    memory: 500Mi
+    cpu: 2000m
+    memory: 2000Mi
 
 enableInitContainers: false

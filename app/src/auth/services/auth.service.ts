@@ -6,24 +6,22 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from '../models/user.model';
-import { Model } from 'mongoose';
+import { User } from '../models/user.model';
 import { NewUserDto } from '../../nats/dto/new-user.dto';
 import { UserUpdatedDto } from '../../nats/dto/userUpdated.dto';
 import { UserDeletedDto } from '../../nats/dto/userDeleted.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor() {}
 
   async register(newUserDto: NewUserDto): Promise<{ success: boolean }> {
-    const session = await this.userModel.startSession();
+    const session = await User.startSession();
     session.startTransaction();
     try {
       const opts = { session };
 
-      const user = await this.userModel.create(newUserDto);
+      const user = await User.build(newUserDto);
 
       await user.save(opts);
 
@@ -46,11 +44,11 @@ export class AuthService {
   }
 
   async findAll() {
-    return this.userModel.find();
+    return User.find();
   }
 
   async findOne(id: string) {
-    const user = await this.userModel.findOne({ _id: id });
+    const user = await User.findOne({ _id: id });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
@@ -59,7 +57,7 @@ export class AuthService {
   }
 
   async update(userUpdatedDto: UserUpdatedDto) {
-    const oldUser = await this.userModel.findOne({
+    const oldUser = await User.findOne({
       username: userUpdatedDto.oldUsername,
     });
 
@@ -90,7 +88,7 @@ export class AuthService {
     email: string;
     emailConfirmed: boolean;
   }) {
-    const user = await this.userModel.findOne({
+    const user = await User.findOne({
       username: emailConfirmChange.username,
     });
 
@@ -106,7 +104,7 @@ export class AuthService {
 
   async remove(userDeleteDto: UserDeletedDto) {
     try {
-      this.userModel.deleteOne({
+      User.deleteOne({
         username: userDeleteDto.username,
         email: userDeleteDto.email,
       });

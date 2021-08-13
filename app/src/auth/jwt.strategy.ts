@@ -2,9 +2,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtPayload } from './jwt-payload.interface';
-import { User, UserDocument } from './models/user.model';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { User, UserDoc } from './models/user.model';
 
 //ExtractJwt.fromAuthHeaderAsBearerToken()
 
@@ -22,7 +20,7 @@ const cookieExtractor = (req) => {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   private logger: Logger;
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {
+  constructor() {
     super({
       jwtFromRequest: cookieExtractor,
       secretOrKey: process.env.JWT_KEY,
@@ -30,9 +28,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     this.logger = new Logger();
   }
 
-  async validate(payload: JwtPayload): Promise<User> {
+  async validate(payload: JwtPayload): Promise<UserDoc> {
     const { username } = payload;
-    const user = await this.userModel.findOne({ username });
+    const user = await User.findOne({ username }).exec();
 
     if (!user) {
       this.logger.error(`Username not found: ${username}`);

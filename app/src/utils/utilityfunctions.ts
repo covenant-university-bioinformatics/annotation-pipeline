@@ -37,11 +37,11 @@ export async function deleteFileorFolder(path) {
     if (path) {
       const value = await fileOrPathExists(path);
       if (value) {
-        console.log('exists: ', path);
+        // console.log('exists: ', path);
         fs.rm(path, { recursive: true }, (err) => {
           if (err) console.log(err.message);
           else {
-            console.log(path, ' deleted');
+            // console.log(path, ' deleted');
           }
         });
       } else {
@@ -57,6 +57,9 @@ export async function deleteFileorFolder(path) {
 
 export function fileOrPathExists(path: string): Promise<boolean> {
   return new Promise((resolve) => {
+    if (!path) {
+      resolve(false);
+    }
     fs.access(path, fs.constants.F_OK, (err) => {
       if (err) {
         resolve(false);
