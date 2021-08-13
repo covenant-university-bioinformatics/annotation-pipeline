@@ -40,7 +40,7 @@ export interface AnnotationDoc extends mongoose.Document {
   intervar: boolean;
 }
 
-const AnnotationSchema = new mongoose.Schema(
+const AnnotationSchema = new mongoose.Schema<AnnotationDoc, AnnotationModel>(
   {
     cytoband: {
       type: Boolean,

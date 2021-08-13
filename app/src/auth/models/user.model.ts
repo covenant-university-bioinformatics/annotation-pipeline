@@ -32,7 +32,7 @@ export interface UserDoc extends mongoose.Document {
   version: string;
 }
 
-const userSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema<UserDoc, UserModel>(
   {
     username: {
       type: String,
@@ -80,6 +80,7 @@ const userSchema = new mongoose.Schema(
 //enable optimistic concurrency control
 //set versionKey to version for occ to use version
 userSchema.set('versionKey', 'version');
+// @ts-ignore
 userSchema.plugin(updateIfCurrentPlugin);
 
 //collection level methods

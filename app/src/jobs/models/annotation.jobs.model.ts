@@ -41,7 +41,7 @@ export interface AnnotationJobsDoc extends mongoose.Document {
   version: number;
 }
 
-const AnnotationJobSchema = new mongoose.Schema(
+const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
   {
     jobUID: {
       type: String,

@@ -23,5 +23,4 @@ RUN apt-get install -y -qq r-cran-ggplot2
 
 RUN npm run build
 
-#RUN yarn run build
 CMD [ "npm", "run", "start:prod" ]
