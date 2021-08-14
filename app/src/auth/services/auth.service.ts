@@ -32,9 +32,7 @@ export class AuthService {
     } catch (e) {
       console.log(e);
       if (e.code === 11000) {
-        throw new ConflictException(
-          'Username/Email already exists: ' + e.message,
-        );
+        return { success: false };
       }
       await session.abortTransaction();
       // throw new HttpException(e.message, 400);
@@ -79,9 +77,8 @@ export class AuthService {
       return { success: true };
     } catch (e) {
       console.log('Error: ', e);
+      return { success: false };
     }
-
-    return { success: false };
   }
 
   async emailConfirmChange(emailConfirmChange: {
