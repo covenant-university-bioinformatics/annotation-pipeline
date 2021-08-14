@@ -16,7 +16,7 @@ export class UserApprovedListener extends Listener<UserApprovedEvent> {
     data: UserApprovedEvent['data'],
     msg: Message,
   ): Promise<void> {
-    // console.log('Personnel Event data!', data);
+    console.log('Personnel Event data!', data);
 
     const result = await this.authService.register(data);
     if (result.success) {
