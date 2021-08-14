@@ -20,6 +20,7 @@ export class UserApprovedListener extends Listener<UserApprovedEvent> {
 
     const result = await this.authService.register(data);
     if (result.success) {
+      console.log('user added');
       msg.ack();
     }
   }

@@ -37,7 +37,8 @@ export class AuthService {
         );
       }
       await session.abortTransaction();
-      throw new HttpException(e.message, 400);
+      // throw new HttpException(e.message, 400);
+      return { success: false };
     } finally {
       session.endSession();
     }
@@ -99,6 +100,7 @@ export class AuthService {
       return { success: true };
     } catch (e) {
       console.log('Error: ', e);
+      return { success: false };
     }
   }
 
@@ -111,6 +113,7 @@ export class AuthService {
       return { success: true };
     } catch (e) {
       console.log(e);
+      return { success: false };
     }
   }
 }
