@@ -17,7 +17,7 @@ deploy:
       - name: annot-service
         chartPath: .\dev_depl\helm\
         valuesFiles:
-          - .\dev_depl\helm\micro-values.yaml
+          - .\dev_depl\helm\values.yaml
         artifactOverrides:
           image: cubrenig/pgwasannot-service
 

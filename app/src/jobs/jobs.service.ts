@@ -58,11 +58,11 @@ export class JobsService {
       await newJob.save(opts);
 
       //add job to queue
-      // await this.jobQueue.addJob({
-      //   jobId: newJob.id,
-      //   jobName: newJob.job_name,
-      //   jobUID: newJob.jobUID,
-      // });
+      await this.jobQueue.addJob({
+        jobId: newJob.id,
+        jobName: newJob.job_name,
+        jobUID: newJob.jobUID,
+      });
 
       // console.log('Job added ');
 
