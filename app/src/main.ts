@@ -12,7 +12,7 @@ import * as hpp from 'hpp';
 
 async function bootstrap() {
   // await connectDB();
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   app.use(cookieParser());
   app.use(mongoSanitize());
   app.use(xss());
