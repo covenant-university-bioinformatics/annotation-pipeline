@@ -1,5 +1,5 @@
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-jwt';
+import { Strategy, ExtractJwt } from 'passport-jwt';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtPayload } from './jwt-payload.interface';
 import { User, UserDoc } from './models/user.model';
@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   private logger: Logger;
   constructor() {
     super({
-      jwtFromRequest: cookieExtractor,
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.JWT_KEY,
     });
     this.logger = new Logger();
