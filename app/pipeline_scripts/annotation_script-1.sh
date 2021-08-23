@@ -8,6 +8,8 @@
 
 bin_dir="/local/datasets/annovar"
 
+echo "running"
+
 inputFile=$1
 outputDir=$2
 CYTOBAND=$3

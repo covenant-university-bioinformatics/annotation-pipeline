@@ -7,6 +7,7 @@ import {
 } from '../jobs/models/annotation.jobs.model';
 import * as path from 'path';
 import { AnnotationModel } from '../jobs/models/annotation.model';
+import { JobCompletedPublisher } from '../nats/publishers/job-completed-publisher';
 
 let scheduler;
 
@@ -24,7 +25,9 @@ export var runningJobs = {
 
 const processorFile = path.join(__dirname, 'worker.js');
 
-export const createWorkers = async () => {
+export const createWorkers = async (
+  jobCompletedPublisher: JobCompletedPublisher,
+) => {
   createScheduler();
   for (let i = 0; i < config.numWorkers; i++) {
     console.log('Creating worker ' + i);
@@ -46,7 +49,7 @@ export const createWorkers = async () => {
 
       // const jobParams = await AnnotationJobsModel.findById(job.data.jobId).exec();
       const pathToOutputDir = `/pv/analysis/${job.data.jobUID}/annotation/output`;
-      await AnnotationJobsModel.findByIdAndUpdate(
+      const finishedJob = await AnnotationJobsModel.findByIdAndUpdate(
         job.data.jobId,
         {
           status: JobStatus.COMPLETED,
@@ -55,22 +58,58 @@ export const createWorkers = async () => {
             disgenet: `${pathToOutputDir}/disgenet.txt`,
           }),
           snp_plot: `${pathToOutputDir}/snp_plot.jpg`,
+          completionTime: new Date(),
         },
         { new: true },
       );
+      if (finishedJob.longJob) {
+        await jobCompletedPublisher.publish({
+          type: 'jobStatus',
+          recipient: {
+            email: job.data.email,
+          },
+          payload: {
+            comments: `${job.data.jobName} has completed successfully`,
+            jobID: job.data.jobId,
+            jobName: job.data.jobName,
+            status: finishedJob.status,
+            username: job.data.username,
+            link: `annotation/result_view/${finishedJob._id}`,
+          },
+        });
+      }
     });
 
     worker.on('failed', async (job: Job) => {
       console.log('worker ' + i + ' failed ' + job.failedReason);
       //update job in database as failed
       //save in mongo database
-      await AnnotationJobsModel.findByIdAndUpdate(
+      const finishedJob = await AnnotationJobsModel.findByIdAndUpdate(
         job.data.jobId,
         {
           status: JobStatus.FAILED,
+          failed_reason: job.failedReason,
+          completionTime: new Date(),
         },
         { new: true },
       );
+
+      if (finishedJob.longJob) {
+        await jobCompletedPublisher.publish({
+          type: 'jobStatus',
+          recipient: {
+            email: job.data.email,
+          },
+          payload: {
+            comments: `${job.data.jobName} has failed to complete`,
+            jobID: job.data.jobId,
+            jobName: job.data.jobName,
+            status: finishedJob.status,
+            username: job.data.username,
+            link: `tools/annotation/result_view/${finishedJob._id}`,
+          },
+        });
+      }
     });
 
     // worker.on('close', () => {

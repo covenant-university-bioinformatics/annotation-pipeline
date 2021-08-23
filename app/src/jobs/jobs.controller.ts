@@ -25,8 +25,9 @@ import { CreateJobDto } from './dto/create-job.dto';
 import {
   deleteFileorFolder,
   fileOrPathExists,
+  fileSizeMb,
 } from '../utils/utilityfunctions';
-import { writeAnnotationFile } from '../utils/validateFile';
+import { fetchLines, writeAnnotationFile } from '../utils/validateFile';
 import { JobStatus } from './models/annotation.jobs.model';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../decorators/get-user.decorator';
@@ -107,7 +108,7 @@ export class JobsController {
     const filename = `/pv/analysis/${jobUID}/input/${file.filename}`;
 
     //write the exact columns needed by the analysis
-    writeAnnotationFile(file.path, filename, {
+    const totalLines = writeAnnotationFile(file.path, filename, {
       marker_name: parseInt(createJobDto.marker_name, 10) - 1,
       chr: parseInt(createJobDto.chromosome, 10) - 1,
       effect_allele: parseInt(createJobDto.effect_allele, 10) - 1,
@@ -124,7 +125,13 @@ export class JobsController {
     // console.log(filename);
 
     //call service
-    return await this.jobsService.create(createJobDto, jobUID, filename, user);
+    return await this.jobsService.create(
+      createJobDto,
+      jobUID,
+      filename,
+      user,
+      totalLines,
+    );
   }
 
   // @Get()
@@ -165,9 +172,16 @@ export class JobsController {
     const fileExists = await fileOrPathExists(job[file_key]);
     if (fileExists) {
       try {
-        const file = fs.createReadStream(job[file_key]);
+        const stat = await fileSizeMb(job[file_key]);
+        if (stat && stat > 2) {
+          //  get first 1000 lines
+          const lines = fetchLines(job[file_key]);
+          return lines;
+        } else {
+          const file = fs.createReadStream(job[file_key]);
 
-        return new StreamableFile(file);
+          return new StreamableFile(file);
+        }
       } catch (e) {
         console.log(e);
         throw new BadRequestException(e.message);
