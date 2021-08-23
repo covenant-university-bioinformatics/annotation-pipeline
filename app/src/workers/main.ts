@@ -74,7 +74,7 @@ export const createWorkers = async (
             jobName: job.data.jobName,
             status: finishedJob.status,
             username: job.data.username,
-            link: `annotation/result_view/${finishedJob._id}`,
+            link: `tools/annotation/result_view/${finishedJob._id}`,
           },
         });
       }
