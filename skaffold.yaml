@@ -7,34 +7,34 @@ deploy:
         chartPath: .\dev_depl\helm\
         valuesFiles:
           - .\dev_depl\helm\ingress-values.yaml
-      - name: redis-bullmq
-        chartPath: .\dev_depl\helm\
-        valuesFiles:
-          - .\dev_depl\helm\redis-values.yaml
-        setValues:
-          volumes.pvc.name: bullmq
-          volumes.pvc.existing_claim:
-      - name: annot-service
-        chartPath: .\dev_depl\helm\
-        valuesFiles:
-          - .\dev_depl\helm\values.yaml
-        artifactOverrides:
-          image: cubrenig/pgwasannot-service
+#      - name: redis-bullmq
+#        chartPath: .\dev_depl\helm\
+#        valuesFiles:
+#          - .\dev_depl\helm\redis-values.yaml
+#        setValues:
+#          volumes.pvc.name: bullmq
+#          volumes.pvc.existing_claim:
+#      - name: annot
+#        chartPath: .\dev_depl\helm\
+#        valuesFiles:
+#          - .\dev_depl\helm\values.yaml
+#        artifactOverrides:
+#          image: cubrenig/pgwasannot-service
 
 build:
   local:
     push: false
     concurrency: 1
   artifacts:
-    - image: cubrenig/pgwasannot-service
-      context: app
-      docker:
-        dockerfile: Dockerfile.dev
-      sync:
-        manual:
-          - src: "src/**/*.ts"
-            dest: .
-          - src: "**/*.R"
-            dest: .
-          - src: "**/*.sh"
-            dest: .
+#    - image: cubrenig/pgwasannot-service
+#      context: app
+#      docker:
+#        dockerfile: Dockerfile.dev
+#      sync:
+#        manual:
+#          - src: "src/**/*.ts"
+#            dest: .
+#          - src: "**/*.R"
+#            dest: .
+#          - src: "**/*.sh"
+#            dest: .

@@ -28,6 +28,7 @@ export class JobsService {
     jobUID: string,
     filename: string,
     user: UserDoc,
+    totalLines: number,
   ) {
     const session = await AnnotationJobsModel.startSession();
     const sessionTest = await AnnotationModel.startSession();
@@ -38,6 +39,11 @@ export class JobsService {
       // console.log('DTO: ', createJobDto);
       const opts = { session };
       const optsTest = { session: sessionTest };
+      console.log(createJobDto.disgenet);
+      console.log(createJobDto.disgenet === 'true');
+      console.log(totalLines);
+      const longJob = createJobDto.disgenet === 'true' && totalLines > 50000;
+      console.log('long job ', longJob);
 
       //save job parameters, folder path, filename in database
       const newJob = await AnnotationJobsModel.build({
@@ -46,6 +52,7 @@ export class JobsService {
         inputFile: filename,
         status: JobStatus.QUEUED,
         user: user.id,
+        longJob,
       });
 
       //let the models be created per specific analysis
@@ -62,6 +69,8 @@ export class JobsService {
         jobId: newJob.id,
         jobName: newJob.job_name,
         jobUID: newJob.jobUID,
+        username: user.username,
+        email: user.email,
       });
 
       // console.log('Job added ');
@@ -74,7 +83,7 @@ export class JobsService {
       };
     } catch (e) {
       if (e.code === 11000) {
-        throw new ConflictException('Duplicate job not allowed: ' + e.message);
+        throw new ConflictException('Duplicate job name not allowed');
       }
       await session.abortTransaction();
       await sessionTest.abortTransaction();

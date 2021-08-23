@@ -112,10 +112,10 @@ volumes:
     hostpath:
       - name: humandb
         path: /run/desktop/mnt/host/c/Users/daref/Downloads/annovar/
-        mountPath: /local/datasets
+        mountPath: /local/datasets/annovar
       - name: disgenet
         path: /run/desktop/mnt/host/c/Users/daref/Downloads/disgenet/
-        mountPath: /local/disgenet
+        mountPath: /local/datasets/disgenet
   network:
     enabled: false
     nfs:

@@ -19,9 +19,6 @@ import { AuthModule } from './auth/auth.module';
     //     useUnifiedTopology: true,
     //   },
     // ),
-    ServeStaticModule.forRoot({
-      serveRoot: '/pv/analysis',
-    }),
     AuthModule,
     JobsModule,
     QueueModule,

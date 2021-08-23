@@ -18,6 +18,7 @@ interface JobsAttrs {
   status: JobStatus;
   user: string;
   inputFile: string;
+  longJob: boolean;
 }
 
 // An interface that describes the extra properties that a model has
@@ -37,8 +38,11 @@ export interface AnnotationJobsDoc extends mongoose.Document {
   outputFile: string;
   disgenet: string;
   snp_plot: string;
+  failed_reason: string;
+  longJob: boolean;
   annot: AnnotationDoc;
   version: number;
+  completionTime: Date;
 }
 
 const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
@@ -77,6 +81,11 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
       trim: true,
     },
 
+    failed_reason: {
+      type: String,
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: [
@@ -88,6 +97,13 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
         JobStatus.QUEUED,
       ],
       default: JobStatus.NOTSTARTED,
+    },
+    longJob: {
+      type: Boolean,
+      default: false,
+    },
+    completionTime: {
+      type: Date,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

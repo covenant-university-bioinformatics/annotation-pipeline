@@ -12,6 +12,7 @@ import {
 import { spawn, spawnSync } from 'child_process';
 import connectDB from '../mongoose';
 import workerController from './workerController';
+import { fileOrPathExists } from '../utils/utilityfunctions';
 function sleep(ms) {
   console.log('sleeping');
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -80,7 +81,30 @@ export default async (job: SandboxedJob) => {
     // { detached: true },
   );
 
-  console.log(`${job.data.jobName} spawn done!`);
+  // console.log('Spawn command log');
+  // console.log(jobSpawn?.stdout?.toString());
+  console.log('=====================================');
+  // console.log('Spawn error log');
+  const error_msg = jobSpawn?.stderr?.toString();
+  // console.log(error_msg);
+
+  const annot = await fileOrPathExists(
+    `${pathToOutputDir}/annotation_output.hg19_multianno_full.tsv`,
+  );
+
+  let disgenet = true;
+
+  if (jobParams.disgenet) {
+    disgenet = false;
+    disgenet = await fileOrPathExists(`${pathToOutputDir}/disgenet.txt`);
+  }
+
+  if (annot && disgenet) {
+    console.log(`${job?.data?.jobName} spawn done!`);
+    return true;
+  } else {
+    throw new Error(error_msg || 'Job failed to successfully complete');
+  }
 
   // console.log(jobSpawn);
   //makes parent exits independently of the spawn

@@ -112,17 +112,27 @@ function doWork(wantedLines: string[]) {
 
 function detectDelimiter(filename: string): string | false {
   const firstLine = getWantedLines(filename)[0];
+  const secondLine = getWantedLines(filename)[1];
 
   let spaceLines = firstLine.split(' ');
   let tabLines = firstLine.split('\t');
   let doubleSpaceLines = firstLine.split('  ');
 
   if (spaceLines.length > 1) {
-    return ' ';
+    if (secondLine.split(' ').length > 1) {
+      return ' ';
+    }
+    throw new BadRequestException('Multiple file delimiters detected');
   } else if (tabLines.length > 1) {
-    return '\t';
+    if (secondLine.split('\t').length > 1) {
+      return '\t';
+    }
+    throw new BadRequestException('Multiple file delimiters detected');
   } else if (doubleSpaceLines.length > 1) {
-    return '  ';
+    if (secondLine.split('  ').length > 1) {
+      return '  ';
+    }
+    throw new BadRequestException('Multiple file delimiters detected');
   } else {
     return false;
   }
@@ -313,20 +323,21 @@ export function writeAnnotationFile(
     );
   }
 
-  const readInterface = readline.createInterface(
-    fs.createReadStream(filename),
-    process.stdout,
-    undefined,
-    false,
-  );
+  // const readInterface = readline.createInterface(
+  //   fs.createReadStream(filename),
+  //   process.stdout,
+  //   undefined,
+  //   false,
+  // );
+  const liner = new lineByLine(filename);
 
   let stream = fs.createWriteStream(output_filename);
 
   let lineCounter = 0;
-
-  readInterface.on('line', function (line) {
+  let line;
+  while ((line = liner.next())) {
     if (lineCounter !== 0) {
-      let lines = line.replace(/(\r\n|\n|\r)/gm, '');
+      let lines = String(line).replace(/(\r\n|\n|\r)/gm, '');
       let lines_strings = lines.split(delimiter);
       const newFileDelim = '\t';
 
@@ -337,17 +348,36 @@ export function writeAnnotationFile(
           lines_strings[objectColumns.effect_allele]
         }${newFileDelim}${
           lines_strings[objectColumns.alternate_allele]
-        }${newFileDelim}${
-          lines_strings[objectColumns.marker_name]
-        }${newFileDelim}\n`,
+        }${newFileDelim}${lines_strings[objectColumns.marker_name]}\n`,
       );
     }
     lineCounter++;
-  });
+  }
 
-  readInterface.on('close', function () {
-    stream.end();
-  });
+  // readInterface.on('close', function () {
+  stream.end();
+  // });
+
+  return lineCounter;
+}
+
+export function fetchLines(filename: string, lines = 1000) {
+  const liner = new lineByLine(filename);
+
+  let lineCounter = 0;
+  let linesStrings = '';
+  let line;
+
+  while ((line = liner.next())) {
+    linesStrings += String(line).replace(/(\r\n|\n|\r)/gm, '') + '\n';
+    if (lineCounter === lines) {
+      break;
+    }
+
+    lineCounter++;
+  }
+
+  return linesStrings;
 }
 
 export default validateFile;

@@ -4,6 +4,7 @@ import { UserApprovedListener } from './listeners/user-approved-listener';
 import { UserUpdatedListener } from './listeners/user-updated-listener';
 import { UserDeletedListener } from './listeners/user-delete-listener';
 import { UserEmailConfirmChangeListener } from './listeners/user-email-confirm-change-listener';
+import { JobCompletedPublisher } from './publishers/job-completed-publisher';
 
 @Module({
   providers: [
@@ -12,12 +13,14 @@ import { UserEmailConfirmChangeListener } from './listeners/user-email-confirm-c
     UserUpdatedListener,
     UserDeletedListener,
     UserEmailConfirmChangeListener,
+    JobCompletedPublisher,
   ],
   exports: [
     UserApprovedListener,
     UserUpdatedListener,
     UserDeletedListener,
     UserEmailConfirmChangeListener,
+    JobCompletedPublisher,
   ],
 })
 export class NatsModule implements OnModuleInit {

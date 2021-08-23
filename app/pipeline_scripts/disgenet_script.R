@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
-
+library(parallel)
 #files needed
 #curated db files
 disgenet_db <- FALSE
@@ -9,17 +9,9 @@ output_path <- ""
 #where data files are located
 bin_dir <- "/local/datasets/disgenet"
 
-
 findDiseases <- function(snp) {
-  indexes <- grep(snp, curated$snpId)
-  result_len <- length(indexes)
-  if(result_len >= 1){
-    rows <- curated[grep(snp, curated$snpId), c(1,7,8,11,16)]
-    return(rows)
-  } else{
-    row <- data.frame(snpId=snp,diseaseName=NA,diseaseType=NA,score=NA,source=NA);
-    return(row)
-  }
+    indexes <- which(!is.na(match(curated$snpId, snp)))
+    return(curated[indexes, c(1,7,8,11,16)])
 }
 
 #get arguments
@@ -42,6 +34,7 @@ if(disgenet_db == TRUE){
   curated <- read.delim(paste(bin_dir, "curated_variant_disease_associations.tsv",sep='/'), header = T, stringsAsFactors = F)
 
   #remember to change to correct column name
+#   output <- mclapply(input_snps[,6], findDiseases, mc.cores=2)
   output <- lapply(input_snps[,6], findDiseases)
   df <- do.call("rbind", output)
 
