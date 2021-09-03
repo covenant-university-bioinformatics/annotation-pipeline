@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+echo "Running"
+
 #set -e
 # keep track of the last executed command
 #trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
@@ -8,26 +11,34 @@
 
 bin_dir="/local/datasets/annovar"
 
-echo "running"
-
 inputFile=$1
 outputDir=$2
-CYTOBAND=$3
-ALL=$4
-AFR=$5
-AMR=$6
-EAS=$7
-EUR=$8
-SAS=$9
-EXAC=${10}
-DISGENET=${11}
-CLINVAR=${12}
-INTERVAR=${13}
+GENE_DB=$3
+CYTOBAND=$4
+ALL=$5
+AFR=$6
+AMR=$7
+EAS=$8
+EUR=$9
+SAS=$10
+EXAC=${11}
+DISGENET=${12}
+CLINVAR=${13}
+INTERVAR=${14}
 
 DATABASES="refGene";
 OPERATION="gx"
-#python sumstat2avinput.py $1  # argument1 is the summary statistic file we want to annotate
-# here we convert it into annovar input format. the output is avinput_version.txt file
+
+echo $DATABASES
+echo $OPERATION
+
+if [ "$GENE_DB" = "ucsc" ]; then
+  DATABASES="knownGene"
+fi
+
+if [ "$GENE_DB" = "ensembl" ]; then
+  DATABASES="ensGene"
+fi
 
 if [[ $CYTOBAND == true ]]
 then
@@ -85,10 +96,10 @@ echo $OPERATION
 
 perl "${bin_dir}/table_annovar.pl" "${inputFile}" "${bin_dir}/humandb/" -buildver hg19 \
     -out "${outputDir}/annotation_output" -remove -protocol ${DATABASES} \
-    -operation $OPERATION -nastring . -csvout -polish -xref "${bin_dir}/example/gene_xref.txt"
+    -operation $OPERATION -nastring . -csvout -polish -xref "${bin_dir}/example/gene_fullxref.txt"
 
 #run rscript
-Rscript pipeline_scripts/disgenet_script.R ${DISGENET} ${inputFile} ${outputDir}
+Rscript pipeline_scripts/disgenet_script.R ${DISGENET} ${inputFile} ${outputDir} ${GENE_DB}
 
 #echo "the output file is annotation_output.refGene.variant_function "
 #less annotation_output.refGene.variant_function

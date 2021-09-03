@@ -11,7 +11,7 @@ import {
 } from '../jobs/models/annotation.model';
 import { spawn, spawnSync } from 'child_process';
 import connectDB from '../mongoose';
-import workerController from './workerController';
+
 import { fileOrPathExists } from '../utils/utilityfunctions';
 function sleep(ms) {
   console.log('sleeping');
@@ -20,6 +20,7 @@ function sleep(ms) {
 
 function getJobParameters(parameters: AnnotationDoc) {
   return [
+    String(parameters.gene_db),
     String(parameters.cytoband),
     String(parameters.kgp_all),
     String(parameters.kgp_afr),
@@ -43,8 +44,7 @@ export default async (job: SandboxedJob) => {
       ' Job name: ' +
       JSON.stringify(job.data.jobName),
   );
-  console.log(job.data.jobName + ' running Jobs ', workerController.runningJob);
-  workerController.incrementRunningJob();
+
   await connectDB();
   await sleep(2000);
 
@@ -81,12 +81,12 @@ export default async (job: SandboxedJob) => {
     // { detached: true },
   );
 
-  // console.log('Spawn command log');
-  // console.log(jobSpawn?.stdout?.toString());
+  console.log('Spawn command log');
+  console.log(jobSpawn?.stdout?.toString());
   console.log('=====================================');
-  // console.log('Spawn error log');
+  console.log('Spawn error log');
   const error_msg = jobSpawn?.stderr?.toString();
-  // console.log(error_msg);
+  console.log(error_msg);
 
   const annot = await fileOrPathExists(
     `${pathToOutputDir}/annotation_output.hg19_multianno_full.tsv`,

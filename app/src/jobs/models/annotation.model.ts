@@ -1,8 +1,15 @@
 import * as mongoose from 'mongoose';
-import { AnnotationJobsDoc } from './annotation.jobs.model';
+import { JobStatus } from './annotation.jobs.model';
+
+export enum GeneAnnot {
+  UCSC = 'ucsc',
+  ENSEMBL = 'ensembl',
+  REFSEQ = 'refseq',
+}
 
 //Interface that describe the properties that are required to create a new job
 interface AnnotationAttrs {
+  gene_db: GeneAnnot;
   cytoband: string;
   kgp_all: string;
   kgp_afr: string;
@@ -20,13 +27,14 @@ interface AnnotationAttrs {
 // An interface that describes the extra properties that a ticket model has
 //collection level methods
 interface AnnotationModel extends mongoose.Model<AnnotationDoc> {
-  build(attrs: AnnotationAttrs): Promise<AnnotationDoc>;
+  build(attrs: AnnotationAttrs): AnnotationDoc;
 }
 
 //An interface that describes a properties that a document has
 export interface AnnotationDoc extends mongoose.Document {
   id: string;
   version: number;
+  gene_db: GeneAnnot;
   cytoband: boolean;
   kgp_all: boolean;
   kgp_afr: boolean;
@@ -42,6 +50,11 @@ export interface AnnotationDoc extends mongoose.Document {
 
 const AnnotationSchema = new mongoose.Schema<AnnotationDoc, AnnotationModel>(
   {
+    gene_db: {
+      type: String,
+      enum: [GeneAnnot.ENSEMBL, GeneAnnot.REFSEQ, GeneAnnot.UCSC],
+      default: GeneAnnot.REFSEQ,
+    },
     cytoband: {
       type: Boolean,
       default: false,
@@ -112,8 +125,8 @@ const AnnotationSchema = new mongoose.Schema<AnnotationDoc, AnnotationModel>(
 AnnotationSchema.set('versionKey', 'version');
 
 //collection level methods
-AnnotationSchema.statics.build = async (attrs: AnnotationAttrs) => {
-  return await AnnotationModel.create(attrs);
+AnnotationSchema.statics.build = (attrs: AnnotationAttrs) => {
+  return new AnnotationModel(attrs);
 };
 
 //create mongoose model

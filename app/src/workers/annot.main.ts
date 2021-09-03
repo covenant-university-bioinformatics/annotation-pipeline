@@ -1,5 +1,5 @@
 import config from '../config/bullmq.config';
-import { WorkerJob } from '../jobqueue/queue';
+import { WorkerJob } from '../jobqueue/queue/annot.queue';
 import { Worker, Job, QueueScheduler } from 'bullmq';
 import {
   AnnotationJobsModel,
@@ -19,11 +19,7 @@ const createScheduler = () => {
   });
 };
 
-export var runningJobs = {
-  value: 0,
-};
-
-const processorFile = path.join(__dirname, 'worker.js');
+const processorFile = path.join(__dirname, 'annot.worker.js');
 
 export const createWorkers = async (
   jobCompletedPublisher: JobCompletedPublisher,
@@ -58,6 +54,7 @@ export const createWorkers = async (
             disgenet: `${pathToOutputDir}/disgenet.txt`,
           }),
           snp_plot: `${pathToOutputDir}/snp_plot.jpg`,
+          exon_plot: `${pathToOutputDir}/exon_plot.jpg`,
           completionTime: new Date(),
         },
         { new: true },
