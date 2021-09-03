@@ -8,14 +8,16 @@ COPY package.json ./
 
 #COPY yarn.lock ./
 
-#RUN yarn add @nestjs/cli --verbose
+RUN yarn add @nestjs/cli --verbose
 
 RUN yarn install
 
 COPY ./ ./
 
 RUN chmod 775 pipeline_scripts/annotation_script-1.sh
+RUN chmod 775 pipeline_scripts/deleteriousness_script.sh
 RUN chmod 775 pipeline_scripts/disgenet_script.R
+RUN chmod 775 pipeline_scripts/filter_exonic.R
 
 #install R and packages
 RUN apt update

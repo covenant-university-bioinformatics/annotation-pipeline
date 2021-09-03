@@ -1,6 +1,7 @@
 export default {
   concurrency: parseInt(process.env.QUEUE_CONCURRENCY || '1'),
   queueName: process.env.QUEUE_NAME || 'annotation',
+  queueDeletName: process.env.QUEUE_NAME || 'deleteriousness',
   connection: {
     host: process.env.REDIS_BULL_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),

@@ -1,6 +1,5 @@
 import * as mongoose from 'mongoose';
 import { UserDoc } from '../../auth/models/user.model';
-import { AnnotationDoc } from './annotation.model';
 
 export enum JobStatus {
   COMPLETED = 'completed',
@@ -11,24 +10,31 @@ export enum JobStatus {
   QUEUED = 'queued',
 }
 
-//Interface that describe the properties that are required to create a new job
+export enum GeneAnnot {
+  UCSC = 'ucsc',
+  ENSEMBL = 'ensembl',
+  REFSEQ = 'refseq',
+}
+
+//Interface that describe the properties
+// that are required to create a new job
 interface JobsAttrs {
   jobUID: string;
   job_name: string;
   status: JobStatus;
   user: string;
   inputFile: string;
-  longJob: boolean;
+  gene_db: GeneAnnot;
 }
 
 // An interface that describes the extra properties that a model has
 //collection level methods
-interface JobsModel extends mongoose.Model<AnnotationJobsDoc> {
-  build(attrs: JobsAttrs): AnnotationJobsDoc;
+interface JobsModel extends mongoose.Model<DeletJobsDoc> {
+  build(attrs: JobsAttrs): DeletJobsDoc;
 }
 
 //An interface that describes a properties that a document has
-export interface AnnotationJobsDoc extends mongoose.Document {
+export interface DeletJobsDoc extends mongoose.Document {
   id: string;
   jobUID: string;
   job_name: string;
@@ -36,17 +42,14 @@ export interface AnnotationJobsDoc extends mongoose.Document {
   status: JobStatus;
   user: UserDoc;
   outputFile: string;
-  disgenet: string;
-  snp_plot: string;
   exon_plot: string;
   failed_reason: string;
-  longJob: boolean;
-  annot: AnnotationDoc;
+  gene_db: GeneAnnot;
   version: number;
   completionTime: Date;
 }
 
-const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
+const DeletJobSchema = new mongoose.Schema<DeletJobsDoc, JobsModel>(
   {
     jobUID: {
       type: String,
@@ -66,18 +69,7 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
       unique: true,
       trim: true,
     },
-
     outputFile: {
-      type: String,
-      trim: true,
-    },
-
-    disgenet: {
-      type: String,
-      trim: true,
-    },
-
-    snp_plot: {
       type: String,
       trim: true,
     },
@@ -85,7 +77,6 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
       type: String,
       trim: true,
     },
-
     failed_reason: {
       type: String,
       trim: true,
@@ -103,10 +94,6 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
       ],
       default: JobStatus.NOTSTARTED,
     },
-    longJob: {
-      type: Boolean,
-      default: false,
-    },
     completionTime: {
       type: Date,
     },
@@ -114,6 +101,11 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    gene_db: {
+      type: String,
+      enum: [GeneAnnot.ENSEMBL, GeneAnnot.REFSEQ, GeneAnnot.UCSC],
+      default: GeneAnnot.REFSEQ,
     },
     version: {
       type: Number,
@@ -134,39 +126,19 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
   },
 );
 
-//increments version when document updates
-// jobsSchema.set("versionKey", "version");
-
 //collection level methods
-AnnotationJobSchema.statics.build = (attrs: JobsAttrs) => {
-  return new AnnotationJobsModel(attrs);
+DeletJobSchema.statics.build = (attrs: JobsAttrs) => {
+  return new DeletJobsModel(attrs);
 };
 
-//Cascade delete main job parameters when job is deleted
-AnnotationJobSchema.pre('remove', async function (next) {
-  console.log('Job parameters being removed!');
-  await this.model('Annotation').deleteMany({
-    job: this.id,
-  });
-  next();
-});
-
-//reverse populate jobs with main job parameters
-AnnotationJobSchema.virtual('annot', {
-  ref: 'Annotation',
-  localField: '_id',
-  foreignField: 'job',
-  required: true,
-  justOne: true,
-});
-
-AnnotationJobSchema.set('versionKey', 'version');
+//increments version when document updates
+DeletJobSchema.set('versionKey', 'version');
 
 //create mongoose model
-const AnnotationJobsModel = mongoose.model<AnnotationJobsDoc, JobsModel>(
-  'AnnotationJob',
-  AnnotationJobSchema,
-  'annotationjobs',
+const DeletJobsModel = mongoose.model<DeletJobsDoc, JobsModel>(
+  'DeletJob',
+  DeletJobSchema,
+  // 'deleteriousnessjobs',
 );
 
-export { AnnotationJobsModel };
+export { DeletJobsModel };

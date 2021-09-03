@@ -1,7 +1,9 @@
 import { Global, Module } from '@nestjs/common';
-import { JobsService } from './jobs.service';
-import { JobsController } from './jobs.controller';
+import { JobsAnnotService } from './services/jobs.annot.service';
+import { JobsAnnotController } from './controllers/jobs.annot.controller';
 import { QueueModule } from '../jobqueue/queue.module';
+import { JobsDeletController } from './controllers/jobs.delet.controller';
+import { JobsDeletService } from './services/jobs.delet.service';
 
 @Global()
 @Module({
@@ -20,8 +22,8 @@ import { QueueModule } from '../jobqueue/queue.module';
     // AuthModule,
     // NatsModule,
   ],
-  controllers: [JobsController],
-  providers: [JobsService],
+  controllers: [JobsAnnotController, JobsDeletController],
+  providers: [JobsAnnotService, JobsDeletService],
   exports: [
     // MongooseModule.forFeature([
     //   {
@@ -31,17 +33,4 @@ import { QueueModule } from '../jobqueue/queue.module';
     // ]),
   ],
 })
-export class JobsModule {
-  // @InjectModel(AnnotationJob.name)
-  // private annotJobsModel: Model<AnnotationJobDocument>;
-  // @InjectModel(User.name) private userModel: Model<UserDocument>;
-  //
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer
-  //     .apply(
-  //       authMiddleware(this.userModel),
-  //       advancedResults(this.annotJobsModel, 'annot'),
-  //     )
-  //     .forRoutes({ path: 'api/annot/jobs', method: RequestMethod.GET });
-  // }
-}
+export class JobsModule {}

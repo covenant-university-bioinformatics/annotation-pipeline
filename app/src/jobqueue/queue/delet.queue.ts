@@ -11,11 +11,11 @@ export interface WorkerJob {
 }
 
 @Injectable()
-export class JobQueue {
+export class DeletJobQueue {
   queue: Queue<WorkerJob, any, string>;
 
   constructor() {
-    this.queue = new Queue<WorkerJob>(config.queueName, {
+    this.queue = new Queue<WorkerJob>(config.queueDeletName, {
       connection: config.connection,
       // limiter: { groupKey: config.limiter.groupKey },
     });

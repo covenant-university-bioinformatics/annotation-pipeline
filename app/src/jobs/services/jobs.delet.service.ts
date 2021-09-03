@@ -4,64 +4,47 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { CreateJobDto } from './dto/create-job.dto';
+import { CreateDeletJobDto } from '../dto/create-delet-job.dto';
 import {
-  AnnotationJobsDoc,
-  AnnotationJobsModel,
+  DeletJobsDoc,
+  DeletJobsModel,
   JobStatus,
-} from './models/annotation.jobs.model';
-import { AnnotationModel } from './models/annotation.model';
-import { JobQueue } from '../jobqueue/queue';
-import { UserDoc } from '../auth/models/user.model';
-import { deleteFileorFolder } from '../utils/utilityfunctions';
-import { GetJobsDto } from './dto/getjobs.dto';
+} from '../models/delet.jobs.model';
+import { DeletJobQueue } from '../../jobqueue/queue/delet.queue';
+import { UserDoc } from '../../auth/models/user.model';
+import { deleteFileorFolder } from '../../utils/utilityfunctions';
+import { GetJobsDto } from '../dto/getjobs.dto';
 
 @Injectable()
-export class JobsService {
+export class JobsDeletService {
   constructor(
-    @Inject(JobQueue)
-    private jobQueue: JobQueue,
+    @Inject(DeletJobQueue)
+    private jobQueue: DeletJobQueue,
   ) {}
 
   async create(
-    createJobDto: CreateJobDto,
+    createJobDto: CreateDeletJobDto,
     jobUID: string,
     filename: string,
     user: UserDoc,
-    totalLines: number,
   ) {
-    const session = await AnnotationJobsModel.startSession();
-    const sessionTest = await AnnotationModel.startSession();
+    const session = await DeletJobsModel.startSession();
     session.startTransaction();
-    sessionTest.startTransaction();
 
     try {
       // console.log('DTO: ', createJobDto);
       const opts = { session };
-      const optsTest = { session: sessionTest };
-      console.log(createJobDto.disgenet);
-      console.log(createJobDto.disgenet === 'true');
-      console.log(totalLines);
-      const longJob = createJobDto.disgenet === 'true' && totalLines > 50000;
-      console.log('long job ', longJob);
 
       //save job parameters, folder path, filename in database
-      const newJob = await AnnotationJobsModel.build({
+      const newJob = await DeletJobsModel.build({
         job_name: createJobDto.job_name,
         jobUID,
         inputFile: filename,
         status: JobStatus.QUEUED,
         user: user.id,
-        longJob,
+        gene_db: createJobDto.gene_db,
       });
 
-      //let the models be created per specific analysis
-      const annot = await AnnotationModel.build({
-        ...createJobDto,
-        job: newJob.id,
-      });
-
-      await annot.save(optsTest);
       await newJob.save(opts);
 
       //add job to queue
@@ -73,10 +56,7 @@ export class JobsService {
         email: user.email,
       });
 
-      // console.log('Job added ');
-
       await session.commitTransaction();
-      await sessionTest.commitTransaction();
       return {
         success: true,
         jobId: newJob.id,
@@ -86,26 +66,16 @@ export class JobsService {
         throw new ConflictException('Duplicate job name not allowed');
       }
       await session.abortTransaction();
-      await sessionTest.abortTransaction();
       deleteFileorFolder(`/pv/analysis/${jobUID}`).then(() => {
         // console.log('deleted');
       });
       throw new BadRequestException(e.message);
     } finally {
       session.endSession();
-      sessionTest.endSession();
     }
   }
-  // {
-  //   $lookup: {
-  //     from: 'annotations',
-  //     localField: '_id',
-  //     foreignField: 'job',
-  //     as: 'annot',
-  //   },
-  // },
+
   async findAll(getJobsDto: GetJobsDto, user: UserDoc) {
-    // await sleep(1000);
     const sortVariable = getJobsDto.sort ? getJobsDto.sort : 'createdAt';
     const limit = getJobsDto.limit ? parseInt(getJobsDto.limit, 10) : 2;
     const page =
@@ -115,7 +85,7 @@ export class JobsService {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    const result = await AnnotationJobsModel.aggregate([
+    const result = await DeletJobsModel.aggregate([
       { $match: { user: user._id } },
       { $sort: { [sortVariable]: -1 } },
       {
@@ -173,19 +143,12 @@ export class JobsService {
     };
   }
 
-  // async findOne(id: string) {
-  //   return await this.jobsModel.findById(id).exec();
-  // }
-
   async getJobByID(id: string) {
-    return await AnnotationJobsModel.findById(id)
-      .populate('annot')
-      .populate('user')
-      .exec();
+    return await DeletJobsModel.findById(id).populate('user').exec();
   }
 
-  async deleteManyJobs(user: UserDoc): Promise<AnnotationJobsDoc[]> {
-    return await AnnotationJobsModel.find({ user: user._id }).exec();
+  async deleteManyJobs(user: UserDoc): Promise<DeletJobsDoc[]> {
+    return await DeletJobsModel.find({ user: user._id }).exec();
   }
 }
 

@@ -20,19 +20,19 @@ import * as multer from 'multer';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JobsService } from './jobs.service';
-import { CreateJobDto } from './dto/create-job.dto';
+import { JobsAnnotService } from '../services/jobs.annot.service';
+import { CreateJobDto } from '../dto/create-job.dto';
 import {
   deleteFileorFolder,
   fileOrPathExists,
   fileSizeMb,
-} from '../utils/utilityfunctions';
-import { fetchLines, writeAnnotationFile } from '../utils/validateFile';
-import { JobStatus } from './models/annotation.jobs.model';
+} from '../../utils/utilityfunctions';
+import { fetchLines, writeAnnotationFile } from '../../utils/validateFile';
+import { JobStatus } from '../models/annotation.jobs.model';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from '../decorators/get-user.decorator';
-import { UserDoc } from '../auth/models/user.model';
-import { GetJobsDto } from './dto/getjobs.dto';
+import { GetUser } from '../../decorators/get-user.decorator';
+import { UserDoc } from '../../auth/models/user.model';
+import { GetJobsDto } from '../dto/getjobs.dto';
 
 const storageOpts = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -48,8 +48,8 @@ const storageOpts = multer.diskStorage({
 
 @UseGuards(AuthGuard())
 @Controller('api/annot/jobs')
-export class JobsController {
-  constructor(private readonly jobsService: JobsService) {}
+export class JobsAnnotController {
+  constructor(private readonly jobsService: JobsAnnotService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('file', { storage: storageOpts }))
