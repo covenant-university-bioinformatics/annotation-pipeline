@@ -57,7 +57,7 @@ myanno <- read.csv(paste(output_path, "annotation_output.hg19_multianno.csv", se
 #write snp column to file
 marker_name <- input_snps[,6]
 allsnps <- cbind(myanno, marker_name);
-write.table(allsnps, paste(output_path,'annotation_output.hg19_multianno_full.tsv', quote = "", sep='/'),sep='\t',row.names=FALSE, quote=F)
+write.table(allsnps, paste(output_path,'annotation_output.hg19_multianno_full.tsv', sep='/'),sep='\t',row.names=FALSE, quote=F)
 
 columnName <- paste('Func.', 'refGene', sep='');
 if(gene_db == 'ucsc'){
