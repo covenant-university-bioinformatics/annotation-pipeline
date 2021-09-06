@@ -96,7 +96,7 @@ echo $OPERATION
 
 perl "${bin_dir}/table_annovar.pl" "${inputFile}" "${bin_dir}/humandb/" -buildver hg19 \
     -out "${outputDir}/annotation_output" -remove -protocol ${DATABASES} \
-    -operation $OPERATION -nastring . -csvout -polish -xref "${bin_dir}/example/gene_fullxref.txt"
+    -operation $OPERATION -nastring . -csvout -polish -xref "${bin_dir}/example/gene_xref.txt"
 
 #run rscript
 Rscript pipeline_scripts/disgenet_script.R ${DISGENET} ${inputFile} ${outputDir} ${GENE_DB}
