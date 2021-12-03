@@ -7,7 +7,7 @@ import {
 } from '../jobs/models/delet.jobs.model';
 import { spawnSync } from 'child_process';
 import connectDB from '../mongoose';
-import { fileOrPathExists } from '../utils/utilityfunctions';
+import { fileOrPathExists } from '@cubrepgwas/pgwascommon';
 function sleep(ms) {
   console.log('sleeping');
   return new Promise((resolve) => setTimeout(resolve, ms));

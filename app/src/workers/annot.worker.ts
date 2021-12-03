@@ -9,10 +9,9 @@ import {
   AnnotationDoc,
   AnnotationModel,
 } from '../jobs/models/annotation.model';
-import { spawn, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import connectDB from '../mongoose';
-
-import { fileOrPathExists } from '../utils/utilityfunctions';
+import { fileOrPathExists } from '@cubrepgwas/pgwascommon';
 function sleep(ms) {
   console.log('sleeping');
   return new Promise((resolve) => setTimeout(resolve, ms));
