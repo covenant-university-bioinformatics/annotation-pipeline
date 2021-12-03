@@ -4,33 +4,23 @@ import { JobsAnnotController } from './controllers/jobs.annot.controller';
 import { QueueModule } from '../jobqueue/queue.module';
 import { JobsDeletController } from './controllers/jobs.delet.controller';
 import { JobsDeletService } from './services/jobs.delet.service';
+import { JobsAnnotNoAuthController } from './controllers/jobs.annot.noauth.controller';
+import { JobsDeletNoAuthController } from './controllers/jobs.delet.noauth.controller';
 
 @Global()
 @Module({
   imports: [
-    // MongooseModule.forFeature([
-    //   {
-    //     name: AnnotationJob.name,
-    //     schema: AnnotationJobSchema,
-    //   },
-    //   {
-    //     name: Annotation.name,
-    //     schema: AnnotationSchema,
-    //   },
-    // ]),
     QueueModule,
     // AuthModule,
     // NatsModule,
   ],
-  controllers: [JobsAnnotController, JobsDeletController],
-  providers: [JobsAnnotService, JobsDeletService],
-  exports: [
-    // MongooseModule.forFeature([
-    //   {
-    //     name: AnnotationJob.name,
-    //     schema: AnnotationJobSchema,
-    //   },
-    // ]),
+  controllers: [
+    JobsAnnotController,
+    JobsDeletController,
+    JobsAnnotNoAuthController,
+    JobsDeletNoAuthController,
   ],
+  providers: [JobsAnnotService, JobsDeletService],
+  exports: [],
 })
 export class JobsModule {}

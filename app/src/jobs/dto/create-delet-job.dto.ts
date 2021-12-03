@@ -5,6 +5,8 @@ import {
   MinLength,
   IsEnum,
   IsNotEmpty,
+  IsEmail,
+  IsOptional,
 } from 'class-validator';
 import { GeneAnnot } from '../models/annotation.model';
 
@@ -13,6 +15,10 @@ export class CreateDeletJobDto {
   @MinLength(5)
   @MaxLength(20)
   job_name: string;
+
+  @IsOptional()
+  @IsEmail()
+  email: string;
 
   @IsNumberString()
   marker_name: string;

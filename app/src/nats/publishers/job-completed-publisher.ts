@@ -1,7 +1,6 @@
 import { Publisher } from './base-publisher';
-import { Subjects } from '../events/subject';
-import { JobCompletedEvent } from '../events/job-completed.event';
 import { Injectable } from '@nestjs/common';
+import { JobCompletedEvent, Subjects } from '@cubrepgwas/pgwascommon';
 
 @Injectable()
 export class JobCompletedPublisher extends Publisher<JobCompletedEvent> {

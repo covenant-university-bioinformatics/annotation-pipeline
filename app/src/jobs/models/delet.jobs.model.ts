@@ -22,7 +22,8 @@ interface JobsAttrs {
   jobUID: string;
   job_name: string;
   status: JobStatus;
-  user: string;
+  user?: string;
+  email?: string;
   inputFile: string;
   gene_db: GeneAnnot;
 }
@@ -40,7 +41,8 @@ export interface DeletJobsDoc extends mongoose.Document {
   job_name: string;
   inputFile: string;
   status: JobStatus;
-  user: UserDoc;
+  user?: UserDoc;
+  email?: string;
   outputFile: string;
   exon_plot: string;
   failed_reason: string;
@@ -62,7 +64,10 @@ const DeletJobSchema = new mongoose.Schema<DeletJobsDoc, JobsModel>(
       type: String,
       required: [true, 'Please add a name'],
     },
-
+    email: {
+      type: String,
+      trim: true,
+    },
     inputFile: {
       type: String,
       required: [true, 'Please add a input filename'],
@@ -100,7 +105,6 @@ const DeletJobSchema = new mongoose.Schema<DeletJobsDoc, JobsModel>(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
     },
     gene_db: {
       type: String,

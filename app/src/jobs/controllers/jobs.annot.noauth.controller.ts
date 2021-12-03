@@ -19,7 +19,7 @@ import { CreateJobDto } from '../dto/create-job.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../../decorators/get-user.decorator';
 import { GetJobsDto } from '../dto/getjobs.dto';
-import { getFileOutput } from "@cubrepgwas/pgwascommon";
+import { getFileOutput } from '@cubrepgwas/pgwascommon';
 
 const storageOpts = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -33,9 +33,8 @@ const storageOpts = multer.diskStorage({
   },
 });
 
-@UseGuards(AuthGuard())
-@Controller('api/annot/jobs')
-export class JobsAnnotController {
+@Controller('api/annot/noauth/jobs')
+export class JobsAnnotNoAuthController {
   constructor(private readonly jobsService: JobsAnnotService) {}
 
   @Post()
@@ -43,56 +42,27 @@ export class JobsAnnotController {
   async create(
     @Body(ValidationPipe) createJobDto: CreateJobDto,
     @UploadedFile() file: Express.Multer.File,
-    @GetUser() user,
   ) {
     //call service
-    return await this.jobsService.create(createJobDto, file, user);
-  }
-
-  // @Get()
-  // findAll(@Res() response) {
-  //   console.log('Executed');
-  //   response.status(200).json(response.advancedResults);
-  // }
-
-  @Get()
-  findAll(@Query(ValidationPipe) jobsDto: GetJobsDto, @GetUser() user) {
-    return this.jobsService.findAll(jobsDto, user);
-  }
-
-  @Get('test')
-  test(@Param('id') id: string) {
-    return {
-      success: true,
-    };
+    return await this.jobsService.create(createJobDto, file);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @GetUser() user) {
-    const job = await this.jobsService.getJobByID(id, user);
+  async findOne(@Param('id') id: string) {
+    const job = await this.jobsService.getJobByIDNoAuth(id);
 
     job.user = null;
     return job;
   }
 
   @Get('/output/:id/:file')
-  async getOutput(
-    @Param('id') id: string,
-    @Param('file') file_key: string,
-    @GetUser() user,
-  ) {
-    const job = await this.jobsService.getJobByID(id, user);
+  async getOutput(@Param('id') id: string, @Param('file') file_key: string) {
+    const job = await this.jobsService.getJobByIDNoAuth(id);
     return getFileOutput(id, file_key, job);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @GetUser() user) {
-    return this.jobsService.removeJob(id, user);
+  async remove(@Param('id') id: string) {
+    return this.jobsService.removeJobNoAuth(id);
   }
-
-  @Delete()
-  async deleteMany(@Param('id') id: string, @GetUser() user) {
-    return await this.jobsService.deleteManyJobs(user);
-  }
-
 }

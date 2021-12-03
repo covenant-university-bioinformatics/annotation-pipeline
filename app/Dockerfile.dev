@@ -6,11 +6,9 @@ WORKDIR /app
 
 COPY package.json ./
 
-#COPY yarn.lock ./
+#RUN npm install -g @nestjs/cli
 
-RUN yarn add @nestjs/cli --verbose
-
-RUN yarn install
+RUN npm install
 
 COPY ./ ./
 
@@ -26,11 +24,13 @@ RUN apt-get install -y r-base
 
 RUN apt-get install -y -qq r-cran-ggplot2
 
+#RUN R -e "install.packages(c('ggplot2'),dependencies=TRUE,repos='http://cran.rstudio.com/')"
+
+#remove windows line endings
 RUN apt-get install dos2unix
 RUN dos2unix pipeline_scripts/annotation_script-1.sh
 RUN dos2unix pipeline_scripts/disgenet_script.R
 
-#RUN R -e "install.packages(c('ggplot2'),dependencies=TRUE,repos='http://cran.rstudio.com/')"
 
 #RUN yarn run build
 CMD [ "yarn", "run", "start:dev" ]
