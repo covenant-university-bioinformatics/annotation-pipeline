@@ -35,8 +35,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            helm install annot --dry-run --debug ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm --set image=cubrenig/pgwasannot:latest --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
-#            helm upgrade annot ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/ --install --wait --set image=cubrenig/pgwasannot:$GITHUB_SHA --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
+            helm upgrade annot ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/ --install --wait --set image=cubrenig/pgwasannot:latest --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
+#            helm install annot --dry-run --debug ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm --set image=cubrenig/pgwasannot:latest --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
 #      - uses: digitalocean/action-doctl@v2
 #        with:
 #          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
