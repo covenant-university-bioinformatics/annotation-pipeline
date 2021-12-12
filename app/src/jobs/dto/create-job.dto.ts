@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsEmail,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 import { GeneAnnot } from '../models/annotation.model';
 
@@ -16,6 +17,9 @@ export class CreateJobDto {
   @MinLength(5)
   @MaxLength(20)
   job_name: string;
+
+  @IsBooleanString()
+  useTest: string;
 
   @IsOptional()
   @IsEmail()

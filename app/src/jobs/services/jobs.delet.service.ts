@@ -23,6 +23,11 @@ import {
   writeAnnotationFile,
 } from '@cubrepgwas/pgwascommon';
 
+//production
+const testPath = '/local/datasets/pgwas_test_files/annot/ex1.txt';
+//development
+// const testPath = '/local/datasets/data/annot/ex1.txt';
+
 @Injectable()
 export class JobsDeletService {
   constructor(
@@ -35,12 +40,14 @@ export class JobsDeletService {
     file: Express.Multer.File,
     user?: UserDoc,
   ) {
-    if (!file) {
-      throw new BadRequestException('Please upload a file');
-    }
+    if (createJobDto.useTest === 'false') {
+      if (!file) {
+        throw new BadRequestException('Please upload a file');
+      }
 
-    if (file.mimetype !== 'text/plain') {
-      throw new BadRequestException('Please upload a text file');
+      if (file.mimetype !== 'text/plain') {
+        throw new BadRequestException('Please upload a text file');
+      }
     }
 
     if (!user && !createJobDto.email) {
@@ -89,7 +96,13 @@ export class JobsDeletService {
       throw new InternalServerErrorException();
     }
 
-    const filename = `/pv/analysis/${jobUID}/input/${file.filename}`;
+    let filename;
+
+    if (createJobDto.useTest === 'false') {
+      filename = `/pv/analysis/${jobUID}/input/${file.filename}`;
+    } else {
+      filename = `/pv/analysis/${jobUID}/input/test.txt`;
+    }
 
     const session = await DeletJobsModel.startSession();
     session.startTransaction();
@@ -98,8 +111,10 @@ export class JobsDeletService {
       // console.log('DTO: ', createJobDto);
       const opts = { session };
 
+      const filepath = createJobDto.useTest === 'true' ? testPath : file.path;
+
       //write the exact columns needed by the analysis
-      writeAnnotationFile(file.path, filename, {
+      const totalLines = writeAnnotationFile(filepath, filename, {
         marker_name: parseInt(createJobDto.marker_name, 10) - 1,
         chr: parseInt(createJobDto.chromosome, 10) - 1,
         effect_allele: parseInt(createJobDto.effect_allele, 10) - 1,
@@ -107,7 +122,13 @@ export class JobsDeletService {
         pos: parseInt(createJobDto.position, 10) - 1,
       });
 
-      deleteFileorFolder(file.path);
+      if (createJobDto.useTest === 'false') {
+        deleteFileorFolder(file.path).then(() => {
+          // console.log('deleted');
+        });
+      }
+
+      const longJob = totalLines > 100000;
 
       let newJob;
 
@@ -120,6 +141,7 @@ export class JobsDeletService {
           status: JobStatus.QUEUED,
           user: user.id,
           gene_db: createJobDto.gene_db,
+          longJob,
         });
       }
 
@@ -131,6 +153,7 @@ export class JobsDeletService {
           status: JobStatus.QUEUED,
           email: createJobDto.email,
           gene_db: createJobDto.gene_db,
+          longJob,
         });
       }
 

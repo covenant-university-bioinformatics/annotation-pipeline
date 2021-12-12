@@ -26,6 +26,7 @@ interface JobsAttrs {
   email?: string;
   inputFile: string;
   gene_db: GeneAnnot;
+  longJob: boolean;
 }
 
 // An interface that describes the extra properties that a model has
@@ -49,6 +50,7 @@ export interface DeletJobsDoc extends mongoose.Document {
   gene_db: GeneAnnot;
   version: number;
   completionTime: Date;
+  longJob: boolean;
 }
 
 const DeletJobSchema = new mongoose.Schema<DeletJobsDoc, JobsModel>(
@@ -110,6 +112,10 @@ const DeletJobSchema = new mongoose.Schema<DeletJobsDoc, JobsModel>(
       type: String,
       enum: [GeneAnnot.ENSEMBL, GeneAnnot.REFSEQ, GeneAnnot.UCSC],
       default: GeneAnnot.REFSEQ,
+    },
+    longJob: {
+      type: Boolean,
+      default: false,
     },
     version: {
       type: Number,
