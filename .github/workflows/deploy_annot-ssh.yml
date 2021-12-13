@@ -11,16 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Add SHORT_SHA env property with commit short sha
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-      - run: echo ${SHORT_SHA}
-      - run: cd app && docker build -t cubrenig/pgwasannot:latest -t cubrenig/pgwasannot:${SHORT_SHA} .
+      - run: cd app && docker build -t cubrenig/pgwasannot:latest -t cubrenig/pgwasannot:$GITHUB_SHA .
       - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - run: docker push cubrenig/pgwasannot:latest
-      - run: docker push cubrenig/pgwasannot:${SHORT_SHA}
+      - run: docker push cubrenig/pgwasannot:$GITHUB_SHA
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
@@ -34,7 +31,7 @@ jobs:
       - name: run script commands via ssh
         uses: appleboy/ssh-action@master
         env:
-          SHA: ${SHORT_SHA}
+          SHA: ${{ github.sha }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
