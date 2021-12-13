@@ -34,7 +34,7 @@ jobs:
       - name: run script commands via ssh
         uses: appleboy/ssh-action@master
         env:
-          SHA: ${{ github.sha }}
+          SHA: ${SHORT_SHA}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
