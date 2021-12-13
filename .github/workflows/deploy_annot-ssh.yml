@@ -12,7 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Add SHORT_SHA env property with commit short sha
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-6`" >> $GITHUB_ENV
+      - run: echo ${SHORT_SHA}
       - run: cd app && docker build -t cubrenig/pgwasannot:latest -t cubrenig/pgwasannot:${SHORT_SHA} .
       - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         env:
