@@ -11,13 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cd app && docker build -t cubrenig/pgwasannot:latest -t cubrenig/pgwasannot:$GITHUB_SHA .
+      - name: Add SHORT_SHA env property with commit short sha
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+      - run: cd app && docker build -t cubrenig/pgwasannot:latest -t cubrenig/pgwasannot:${SHORT_SHA} .
       - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - run: docker push cubrenig/pgwasannot
-      - run: docker push cubrenig/pgwasannot:$GITHUB_SHA
+      - run: docker push cubrenig/pgwasannot:${SHORT_SHA}
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
@@ -35,7 +37,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            helm upgrade annot ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/ --install --wait --set image=cubrenig/pgwasannot:latest --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
+            helm upgrade annot ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/ --install --wait --set image=cubrenig/pgwasannot:${SHORT_SHA} --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
 #            helm install annot --dry-run --debug ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm --set image=cubrenig/pgwasannot:latest --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
 #      - uses: digitalocean/action-doctl@v2
 #        with:
