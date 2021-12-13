@@ -33,13 +33,16 @@ jobs:
         run: rsync -avz ${{ github.workspace }}/ ${{ secrets.USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.HOME_DIR }}/files/dist/annot/
       - name: run script commands via ssh
         uses: appleboy/ssh-action@master
+        env:
+          SHA: ${SHORT_SHA}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
+          envs: SHA
           script: |
-            echo ${SHORT_SHA} > ${{ secrets.HOME_DIR }}/myfile.txt
-            helm upgrade annot ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/ --install --wait --set image=cubrenig/pgwasannot:latest --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
+            echo $SHA > ${{ secrets.HOME_DIR }}/myfile.txt
+            helm upgrade annot ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/ --install --wait --set image=cubrenig/pgwasannot:$SHA --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
 #            helm install annot --dry-run --debug ${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm --set image=cubrenig/pgwasannot:latest --values=${{ secrets.HOME_DIR }}/files/dist/annot/dev_depl/helm/micro-values.yaml
 #      - uses: digitalocean/action-doctl@v2
 #        with:
