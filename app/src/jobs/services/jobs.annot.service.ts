@@ -22,6 +22,7 @@ import { GetJobsDto } from '../dto/getjobs.dto';
 import {
   deleteFileorFolder,
   fileOrPathExists,
+  fileSizeMb,
   findAllJobs,
   removeManyUserJobs,
   removeUserJob,
@@ -101,14 +102,6 @@ export class JobsAnnotService {
       throw new InternalServerErrorException();
     }
 
-    let filename;
-
-    if (createJobDto.useTest === 'false') {
-      filename = `/pv/analysis/${jobUID}/input/${file.filename}`;
-    } else {
-      filename = `/pv/analysis/${jobUID}/input/test.txt`;
-    }
-
     const session = await AnnotationJobsModel.startSession();
     const sessionTest = await AnnotationModel.startSession();
     session.startTransaction();
@@ -121,21 +114,8 @@ export class JobsAnnotService {
       const filepath = createJobDto.useTest === 'true' ? testPath : file.path;
 
       //write the exact columns needed by the analysis
-      const totalLines = writeAnnotationFile(filepath, filename, {
-        marker_name: parseInt(createJobDto.marker_name, 10) - 1,
-        chr: parseInt(createJobDto.chromosome, 10) - 1,
-        effect_allele: parseInt(createJobDto.effect_allele, 10) - 1,
-        alternate_allele: parseInt(createJobDto.alternate_allele, 10) - 1,
-        pos: parseInt(createJobDto.position, 10) - 1,
-      });
-
-      if (createJobDto.useTest === 'false') {
-        deleteFileorFolder(file.path).then(() => {
-          console.log('deleted');
-        });
-      }
-
-      const longJob = createJobDto.disgenet === 'true' && totalLines > 50000;
+      const fileSize = await fileSizeMb(filepath);
+      const longJob = fileSize > 0.5 || createJobDto.disgenet === 'true';
 
       //save job parameters, folder path, filename in database
       let newJob;
@@ -143,7 +123,7 @@ export class JobsAnnotService {
         newJob = await AnnotationJobsModel.build({
           job_name: createJobDto.job_name,
           jobUID,
-          inputFile: filename,
+          inputFile: filepath,
           status: JobStatus.QUEUED,
           user: user.id,
           longJob,
@@ -154,7 +134,7 @@ export class JobsAnnotService {
         newJob = await AnnotationJobsModel.build({
           job_name: createJobDto.job_name,
           jobUID,
-          inputFile: filename,
+          inputFile: filepath,
           status: JobStatus.QUEUED,
           email: createJobDto.email,
           longJob,

@@ -26,6 +26,12 @@ interface JobsAttrs {
   email?: string;
   inputFile: string;
   gene_db: GeneAnnot;
+  useTest: string;
+  marker_name: string;
+  chromosome: string;
+  position: string;
+  effect_allele: string;
+  alternate_allele: string;
   longJob: boolean;
 }
 
@@ -48,6 +54,12 @@ export interface DeletJobsDoc extends mongoose.Document {
   exon_plot: string;
   failed_reason: string;
   gene_db: GeneAnnot;
+  useTest: boolean;
+  marker_name: number;
+  chromosome: number;
+  position: number;
+  effect_allele: number;
+  alternate_allele: number;
   version: number;
   completionTime: Date;
   longJob: boolean;
@@ -112,6 +124,30 @@ const DeletJobSchema = new mongoose.Schema<DeletJobsDoc, JobsModel>(
       type: String,
       enum: [GeneAnnot.ENSEMBL, GeneAnnot.REFSEQ, GeneAnnot.UCSC],
       default: GeneAnnot.REFSEQ,
+    },
+    useTest: {
+      type: Boolean,
+      trim: true,
+    },
+    marker_name: {
+      type: Number,
+      trim: true,
+    },
+    chromosome: {
+      type: Number,
+      trim: true,
+    },
+    position: {
+      type: Number,
+      trim: true,
+    },
+    effect_allele: {
+      type: Number,
+      trim: true,
+    },
+    alternate_allele: {
+      type: Number,
+      trim: true,
     },
     longJob: {
       type: Boolean,
