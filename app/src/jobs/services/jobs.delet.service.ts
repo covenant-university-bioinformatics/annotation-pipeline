@@ -17,6 +17,7 @@ import * as fs from 'fs';
 import {
   deleteFileorFolder,
   fileOrPathExists,
+  fileSizeMb,
   findAllJobs,
   removeManyUserJobs,
   removeUserJob,
@@ -96,14 +97,6 @@ export class JobsDeletService {
       throw new InternalServerErrorException();
     }
 
-    let filename;
-
-    if (createJobDto.useTest === 'false') {
-      filename = `/pv/analysis/${jobUID}/input/${file.filename}`;
-    } else {
-      filename = `/pv/analysis/${jobUID}/input/test.txt`;
-    }
-
     const session = await DeletJobsModel.startSession();
     session.startTransaction();
 
@@ -113,47 +106,31 @@ export class JobsDeletService {
 
       const filepath = createJobDto.useTest === 'true' ? testPath : file.path;
 
-      //write the exact columns needed by the analysis
-      const totalLines = writeAnnotationFile(filepath, filename, {
-        marker_name: parseInt(createJobDto.marker_name, 10) - 1,
-        chr: parseInt(createJobDto.chromosome, 10) - 1,
-        effect_allele: parseInt(createJobDto.effect_allele, 10) - 1,
-        alternate_allele: parseInt(createJobDto.alternate_allele, 10) - 1,
-        pos: parseInt(createJobDto.position, 10) - 1,
-      });
-
-      if (createJobDto.useTest === 'false') {
-        deleteFileorFolder(file.path).then(() => {
-          // console.log('deleted');
-        });
-      }
-
-      const longJob = totalLines > 100000;
+      const fileSize = await fileSizeMb(filepath);
+      const longJob = fileSize > 0.5;
 
       let newJob;
 
       //save job parameters, folder path, filename in database
       if (user) {
         newJob = await DeletJobsModel.build({
-          job_name: createJobDto.job_name,
           jobUID,
-          inputFile: filename,
+          inputFile: filepath,
           status: JobStatus.QUEUED,
           user: user.id,
-          gene_db: createJobDto.gene_db,
           longJob,
+          ...createJobDto,
         });
       }
 
       if (createJobDto.email) {
         newJob = await DeletJobsModel.build({
-          job_name: createJobDto.job_name,
           jobUID,
-          inputFile: filename,
+          inputFile: filepath,
           status: JobStatus.QUEUED,
           email: createJobDto.email,
-          gene_db: createJobDto.gene_db,
           longJob,
+          ...createJobDto,
         });
       }
 

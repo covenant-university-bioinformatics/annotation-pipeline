@@ -19,14 +19,14 @@ import { CreateJobDto } from '../dto/create-job.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../../decorators/get-user.decorator';
 import { GetJobsDto } from '../dto/getjobs.dto';
-import { getFileOutput } from "@cubrepgwas/pgwascommon";
+import { getFileOutput } from '@cubrepgwas/pgwascommon';
 
 const storageOpts = multer.diskStorage({
   destination: function (req, file, cb) {
-    if (!fs.existsSync('/tmp/summaryStats')) {
-      fs.mkdirSync('/tmp/summaryStats', { recursive: true });
+    if (!fs.existsSync('/local/datasets/temporary')) {
+      fs.mkdirSync('/local/datasets/temporary', { recursive: true });
     }
-    cb(null, '/tmp/summaryStats'); //destination
+    cb(null, '/local/datasets/temporary'); //destination
   },
   filename: function (req, file, cb) {
     cb(null, file.fieldname + '__' + file.originalname);
@@ -94,5 +94,4 @@ export class JobsAnnotController {
   async deleteMany(@Param('id') id: string, @GetUser() user) {
     return await this.jobsService.deleteManyJobs(user);
   }
-
 }

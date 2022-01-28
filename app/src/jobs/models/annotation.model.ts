@@ -9,6 +9,12 @@ export enum GeneAnnot {
 
 //Interface that describe the properties that are required to create a new job
 interface AnnotationAttrs {
+  useTest: string;
+  marker_name: string;
+  chromosome: string;
+  position: string;
+  effect_allele: string;
+  alternate_allele: string;
   gene_db: GeneAnnot;
   cytoband: string;
   kgp_all: string;
@@ -34,6 +40,12 @@ interface AnnotationModel extends mongoose.Model<AnnotationDoc> {
 export interface AnnotationDoc extends mongoose.Document {
   id: string;
   version: number;
+  useTest: boolean;
+  marker_name: number;
+  chromosome: number;
+  position: number;
+  effect_allele: number;
+  alternate_allele: number;
   gene_db: GeneAnnot;
   cytoband: boolean;
   kgp_all: boolean;
@@ -50,6 +62,30 @@ export interface AnnotationDoc extends mongoose.Document {
 
 const AnnotationSchema = new mongoose.Schema<AnnotationDoc, AnnotationModel>(
   {
+    useTest: {
+      type: Boolean,
+      trim: true,
+    },
+    marker_name: {
+      type: Number,
+      trim: true,
+    },
+    chromosome: {
+      type: Number,
+      trim: true,
+    },
+    position: {
+      type: Number,
+      trim: true,
+    },
+    effect_allele: {
+      type: Number,
+      trim: true,
+    },
+    alternate_allele: {
+      type: Number,
+      trim: true,
+    },
     gene_db: {
       type: String,
       enum: [GeneAnnot.ENSEMBL, GeneAnnot.REFSEQ, GeneAnnot.UCSC],
