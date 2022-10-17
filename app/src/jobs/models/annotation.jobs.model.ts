@@ -65,7 +65,6 @@ const AnnotationJobSchema = new mongoose.Schema<AnnotationJobsDoc, JobsModel>(
     inputFile: {
       type: String,
       required: [true, 'Please add a input filename'],
-      unique: true,
       trim: true,
     },
 
