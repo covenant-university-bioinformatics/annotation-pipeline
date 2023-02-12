@@ -13,6 +13,8 @@ import {
   writeAnnotationFile,
 } from '@cubrepgwas/pgwascommon';
 import { AnnotationModel } from '../jobs/models/annotation.model';
+import * as extract from "extract-zip";
+import * as globby from "globby";
 function sleep(ms) {
   console.log('sleeping');
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -38,11 +40,27 @@ export default async (job: SandboxedJob) => {
   //fetch job parameters from database
   const jobParams = await DeletJobsModel.findById(job.data.jobId).exec();
 
+  let fileInput = jobParams.inputFile;
+
+  //check if file is a zipped file
+  if(/[^.]+$/.exec(jobParams.inputFile)[0] === 'zip'){
+    fs.mkdirSync(`/pv/analysis/${jobParams.jobUID}/zip`, { recursive: true });
+    await extract(jobParams.inputFile, {dir: `/pv/analysis/${jobParams.jobUID}/zip/`});
+    const paths = await globby(`/pv/analysis/${jobParams.jobUID}/zip/*.*`);
+    if (paths.length === 0){
+      throw new Error('Zip had no files')
+    }
+    if (paths.length > 1){
+      throw new Error('Zip had too many files')
+    }
+    fileInput = paths[0]
+  }
+
   //create input file and folder
   let filename;
 
   //extract file name
-  const name = jobParams.inputFile.split(/(\\|\/)/g).pop();
+  const name = fileInput.split(/(\\|\/)/g).pop();
 
   if (jobParams.useTest === false) {
     filename = `/pv/analysis/${jobParams.jobUID}/input/${name}`;
@@ -60,6 +78,12 @@ export default async (job: SandboxedJob) => {
 
   if (jobParams.useTest === false) {
     deleteFileorFolder(jobParams.inputFile).then(() => {
+      console.log('deleted');
+    });
+  }
+
+  if(/[^.]+$/.exec(jobParams.inputFile)[0] === 'zip'){
+    deleteFileorFolder(fileInput).then(() => {
       console.log('deleted');
     });
   }
