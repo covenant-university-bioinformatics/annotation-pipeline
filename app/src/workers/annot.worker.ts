@@ -94,6 +94,7 @@ export default async (job: SandboxedJob) => {
   }
 
   //write the exact columns needed by the analysis
+  //--3
   writeAnnotationFile(fileInput, filename, {
     marker_name: parameters.marker_name - 1,
     chr: parameters.chromosome - 1,
@@ -107,7 +108,7 @@ export default async (job: SandboxedJob) => {
       console.log('deleted');
     });
   }
-  //--3
+  //--4
   if(/[^.]+$/.exec(jobParams.inputFile)[0] === 'zip'){
     deleteFileorFolder(fileInput).then(() => {
       console.log('deleted');

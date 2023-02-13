@@ -68,7 +68,7 @@ export default async (job: SandboxedJob) => {
     filename = `/pv/analysis/${jobParams.jobUID}/input/test.txt`;
   }
 
-  writeAnnotationFile(jobParams.inputFile, filename, {
+  writeAnnotationFile(fileInput, filename, {
     marker_name: jobParams.marker_name - 1,
     chr: jobParams.chromosome - 1,
     effect_allele: jobParams.effect_allele - 1,
